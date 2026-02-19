@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %} {% block title %}Auto-Reply Rules{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4>🤖 Auto-Reply Rules</h4>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+  <h6>Add New Rule</h6>
+  <form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add" />
+    <div class="row g-3">
+      <div class="col-md-4">
+        <input
+          type="text"
+          name="trigger_keyword"
+          class="form-control"
+          placeholder="Trigger keyword e.g price"
+          required
+        />
+      </div>
+      <div class="col-md-6">
+        <input
+          type="text"
+          name="response_text"
+          class="form-control"
+          placeholder="Response message"
+          required
+        />
+      </div>
+      <div class="col-md-2">
+        <button
+          type="submit"
+          class="btn w-100 text-white"
+          style="background: #075e54"
+        >
+          Add Rule
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+  <table class="table table-hover mb-0">
+    <thead style="background: #f8f9fa">
+      <tr>
+        <th>Keyword</th>
+        <th>Response</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rule in rules %}
+      <tr>
+        <td>
+          <span class="badge bg-secondary">{{ rule.trigger_keyword }}</span>
+        </td>
+        <td>{{ rule.response_text }}</td>
+        <td>
+          {% if rule.is_active %}
+          <span class="badge bg-success">Active</span>
+          {% else %}
+          <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="POST" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle" />
+            <input type="hidden" name="rule_id" value="{{ rule.id }}" />
+            <button class="btn btn-sm btn-outline-secondary">Toggle</button>
+          </form>
+          <form method="POST" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete" />
+            <input type="hidden" name="rule_id" value="{{ rule.id }}" />
+            <button
+              class="btn btn-sm btn-outline-danger"
+              onclick="return confirm('Delete this rule?');"
+            >
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="text-center text-muted py-4">
+          No rules yet. Add one above!
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

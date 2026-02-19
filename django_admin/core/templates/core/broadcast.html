@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+{% block title %}Broadcast{% endblock %}
+{% block content %}
+<h4 class="mb-4">📢 Broadcast Message</h4>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h6>Send New Broadcast</h6>
+    <p class="text-muted small">Broadcasts use WhatsApp approved templates. Make sure your template is approved in Meta dashboard first.</p>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="broadcast">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Broadcast Title</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g January Promo" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Template Name</label>
+                <input type="text" name="template_name" class="form-control" placeholder="e.g hello_world" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Your Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Confirm your password" required>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn w-100 text-white" style="background:#075e54"
+                    onclick="return confirm('Send to all {{ contacts_count }} contacts?')">
+                    <i class="fas fa-bullhorn me-2"></i> Send to {{ contacts_count }} Contacts
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<h5 class="mb-3">Broadcast History</h5>
+<div class="card border-0 shadow-sm rounded-4">
+    <table class="table table-hover mb-0">
+        <thead style="background:#f8f9fa">
+            <tr>
+                <th>Title</th>
+                <th>Template</th>
+                <th>Total</th>
+                <th>Sent</th>
+                <th>Failed</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in broadcasts %}
+            <tr>
+                <td>{{ b.title }}</td>
+                <td><span class="badge bg-secondary">{{ b.template_name }}</span></td>
+                <td>{{ b.total }}</td>
+                <td><span class="text-success fw-bold">{{ b.sent }}</span></td>
+                <td><span class="text-danger fw-bold">{{ b.failed }}</span></td>
+                <td>
+                    {% if b.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif b.status == 'running' %}
+                        <span class="badge bg-warning">Running</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Pending</span>
+                    {% endif %}
+                </td>
+                <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4">No broadcasts yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

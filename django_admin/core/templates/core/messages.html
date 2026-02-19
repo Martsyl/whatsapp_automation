@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+ {% block title %}Message History{% endblock %} 
+ {%block content %}
+<h4 class="mb-4">💬 Message History</h4>
+<div class="card border-0 shadow-sm rounded-4">
+  <table class="table table-hover mb-0">
+    <thead style="background: #f8f9fa">
+      <tr>
+        <th>Sender</th>
+        <th>Message</th>
+        <th>Direction</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for msg in messages_list %}
+      <tr>
+        <td>{{ msg.sender_number }}</td>
+        <td>{{ msg.message_text }}</td>
+        <td>
+          {% if msg.direction == 'inbound' %}
+          <span class="badge bg-primary">Received</span>
+          {% else %}
+          <span class="badge bg-success">Sent</span>
+          {% endif %}
+        </td>
+        <td>{{ msg.timestamp|date:"M d, Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="text-center text-muted py-4">
+          No messages yet.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %} 
+{% block title %}Profile{% endblock %}
+ {% block content %}
+<h4 class="mb-4">👤 Profile</h4>
+<div class="card border-0 shadow-sm rounded-4 p-4" style="max-width: 600px">
+  <div class="mb-3">
+    <label class="text-muted small">Business Name</label>
+    <p class="fw-bold">{{ client.business_name }}</p>
+  </div>
+  <div class="mb-3">
+    <label class="text-muted small">Email</label>
+    <p class="fw-bold">{{ client.email }}</p>
+  </div>
+  <div class="mb-3">
+    <label class="text-muted small">WhatsApp Number</label>
+    <p class="fw-bold">{{ client.whatsapp_number }}</p>
+  </div>
+  <div class="mb-3">
+    <label class="text-muted small">Account Status</label>
+    <p>
+      {% if client.is_active %}
+      <span class="badge bg-success">Active</span>
+      {% else %}
+      <span class="badge bg-danger">Inactive</span>
+      {% endif %}
+    </p>
+  </div>
+  <div class="mb-3">
+    <label class="text-muted small">Member Since</label>
+    <p class="fw-bold">{{ client.created_at|date:"M d, Y" }}</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %} {% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="card shadow border-0 rounded-4 p-4">
+      <div class="text-center mb-4">
+        <i class="fab fa-whatsapp fa-3x" style="color: #25d366"></i>
+        <h4 class="mt-2">Client Login</h4>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input
+            type="password"
+            name="password"
+            class="form-control"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          class="btn w-100 text-white"
+          style="background: #075e54"
+        >
+          Login
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
