@@ -1,0 +1,40 @@
+# Environment variables - NEVER push this
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycache
+venv/
+env/
+
+# Django
+django_admin/__pycache__/
+django_admin/core/__pycache__/
+*.sqlite3
+django_admin/staticfiles/
+
+# FastAPI
+app/__pycache__/
+app/routers/__pycache__/
+
+# Database migrations (optional but recommended to ignore for now)
+django_admin/core/migrations/
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Ngrok
+ngrok.exe
+ngrok
