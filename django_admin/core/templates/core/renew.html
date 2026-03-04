@@ -1,0 +1,333 @@
+{% extends 'core/base.html' %}
+{% block title %}Renew Subscription{% endblock %}
+{% block content %}
+
+<style>
+  .plan-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: white;
+  }
+  .plan-card:hover {
+    border-color: #075e54;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(7,94,84,0.1);
+  }
+  .plan-card.selected {
+    border-color: #075e54;
+    box-shadow: 0 0 0 3px rgba(7,94,84,0.1);
+  }
+  .plan-card.current-plan {
+    border-color: #075e54;
+  }
+  .current-tag {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #075e54;
+    color: white;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .popular-tag {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #25D366;
+    color: #075e54;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .plan-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .plan-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #0d1117;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .plan-period {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    margin-bottom: 16px;
+  }
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #374151;
+  }
+  .check {
+    width: 17px; height: 17px;
+    border-radius: 5px;
+    background: #f0faf9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #075e54;
+    flex-shrink: 0;
+  }
+  .select-ring {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+  }
+  .plan-card.selected .select-ring {
+    border-color: #075e54;
+    background: #075e54;
+  }
+  .select-ring::after {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: white;
+    display: none;
+  }
+  .plan-card.selected .select-ring::after { display: block; }
+  .btn-renew {
+    background: #075e54;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-renew:hover {
+    background: #128c7e;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(7,94,84,0.25);
+  }
+</style>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-1">🔄 Renew Subscription</h4>
+    <p class="text-muted mb-0">Keep your WhatsApp bot running</p>
+  </div>
+</div>
+
+<!-- Subscription Status -->
+{% if days_left is not None %}
+  {% if days_left > 7 %}
+  <div class="alert border-0 rounded-4 mb-4"
+      style="background:#f0faf9; border-left:4px solid #075e54 !important;">
+    <i class="fas fa-check-circle text-success me-2"></i>
+    Your subscription is active.
+    <strong>{{ days_left }} days remaining</strong> until renewal.
+  </div>
+  {% elif days_left > 0 %}
+  <div class="alert border-0 rounded-4 mb-4"
+      style="background:#fff8e1; border-left:4px solid #f59e0b !important;">
+    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+    Your subscription expires in <strong>{{ days_left }} days</strong>.
+    Renew now to avoid interruption.
+  </div>
+  {% elif days_left == 0 %}
+  <div class="alert border-0 rounded-4 mb-4"
+      style="background:#fff0f0; border-left:4px solid #dc3545 !important;">
+    <i class="fas fa-exclamation-circle text-danger me-2"></i>
+    <strong>Your subscription expired today.</strong>
+    You have a 3-day grace period. Renew immediately!
+  </div>
+  {% else %}
+  <div class="alert border-0 rounded-4 mb-4"
+      style="background:#fff0f0; border-left:4px solid #dc3545 !important;">
+    <i class="fas fa-times-circle text-danger me-2"></i>
+    <strong>Your subscription has expired.</strong>
+    Renew now to reactivate your bot.
+  </div>
+  {% endif %}
+{% endif %}
+
+{% if error %}
+<div class="alert alert-danger border-0 rounded-4 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+<!-- Plan Selection -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+  <h6 class="fw-bold mb-1">Choose your plan</h6>
+  <p class="text-muted small mb-4">
+    You can upgrade or downgrade. Current plan:
+    <strong class="text-success text-capitalize">{{ client.plan }}</strong>
+  </p>
+
+  <form method="POST" id="renewForm">
+    {% csrf_token %}
+    <input type="hidden" name="plan" id="selectedPlan"
+        value="{{ client.plan }}">
+
+    <div class="row g-3 mb-4">
+
+      <!-- Starter -->
+      <div class="col-md-4">
+        <div class="plan-card {% if client.plan == 'starter' %}selected current-plan{% endif %}"
+            onclick="selectPlan('starter', this)">
+          {% if client.plan == 'starter' %}
+          <div class="current-tag">Current Plan</div>
+          {% endif %}
+          <div class="select-ring"></div>
+          <p class="plan-name">Starter</p>
+          <div class="plan-price">₦8,000</div>
+          <p class="plan-period">per month</p>
+          <ul class="plan-features">
+            <li><span class="check">✓</span> 1 WhatsApp number</li>
+            <li><span class="check">✓</span> 500 contacts</li>
+            <li><span class="check">✓</span> 10 rules</li>
+            <li><span class="check">✓</span> 10 products</li>
+            <li><span class="check">✓</span> Business hours</li>
+            <li><span class="check">✓</span> Basic analytics</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Growth -->
+      <div class="col-md-4">
+        <div class="plan-card {% if client.plan == 'growth' %}selected current-plan{% else %}{% endif %}"
+            onclick="selectPlan('growth', this)">
+          {% if client.plan == 'growth' %}
+          <div class="current-tag">Current Plan</div>
+          {% else %}
+          <div class="popular-tag">Most Popular</div>
+          {% endif %}
+          <div class="select-ring"></div>
+          <p class="plan-name">Growth</p>
+          <div class="plan-price">₦18,000</div>
+          <p class="plan-period">per month</p>
+          <ul class="plan-features">
+            <li><span class="check">✓</span> 1 WhatsApp number</li>
+            <li><span class="check">✓</span> Unlimited contacts</li>
+            <li><span class="check">✓</span> Unlimited rules</li>
+            <li><span class="check">✓</span> Unlimited products</li>
+            <li><span class="check">✓</span> Broadcasts</li>
+            <li><span class="check">✓</span> Full analytics</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Pro -->
+      <div class="col-md-4">
+        <div class="plan-card {% if client.plan == 'pro' %}selected current-plan{% endif %}"
+            onclick="selectPlan('pro', this)">
+          {% if client.plan == 'pro' %}
+          <div class="current-tag">Current Plan</div>
+          {% endif %}
+          <div class="select-ring"></div>
+          <p class="plan-name">Pro</p>
+          <div class="plan-price">₦35,000</div>
+          <p class="plan-period">per month</p>
+          <ul class="plan-features">
+            <li><span class="check">✓</span> Everything in Growth</li>
+            <li><span class="check">✓</span> Advanced analytics</li>
+            <li><span class="check">✓</span> Dedicated support</li>
+            <li><span class="check">✓</span> Custom onboarding</li>
+            <li><span class="check" style="background:rgba(251,191,36,0.15);
+                color:#f59e0b;">✦</span> AI Smart Replies
+              <span style="background:#f59e0b;color:#000;font-size:0.6rem;
+                font-weight:700;padding:1px 6px;border-radius:100px;">
+                Soon</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <button type="submit" class="btn-renew" id="renewBtn">
+      🔒 Pay with Paystack →
+    </button>
+
+    <p style="text-align:center;font-size:0.78rem;color:#9ca3af;margin-top:12px;">
+      🔒 Secured by Paystack · Card, Bank Transfer, Opay, USSD
+    </p>
+
+  </form>
+</div>
+
+<!-- Subscription Info -->
+{% if client.subscription_end %}
+<div class="card border-0 shadow-sm rounded-4 p-4">
+  <h6 class="fw-bold mb-3">📅 Subscription Details</h6>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="p-3 rounded-3" style="background:#f8f9fa;">
+        <p class="text-muted small mb-1">Started</p>
+        <p class="fw-bold mb-0">{{ client.subscription_start|date:"M d, Y" }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded-3" style="background:#f8f9fa;">
+        <p class="text-muted small mb-1">Expires</p>
+        <p class="fw-bold mb-0">{{ client.subscription_end|date:"M d, Y" }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded-3" style="background:#f8f9fa;">
+        <p class="text-muted small mb-1">Current Plan</p>
+        <p class="fw-bold mb-0 text-capitalize">{{ client.plan }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function selectPlan(plan, card) {
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('selectedPlan').value = plan;
+
+  const prices = { starter: '₦8,000', growth: '₦18,000', pro: '₦35,000' };
+  document.getElementById('renewBtn').textContent =
+    `🔒 Pay ${prices[plan]} with Paystack →`;
+}
+
+document.getElementById('renewForm').addEventListener('submit', function() {
+  const btn = document.getElementById('renewBtn');
+  btn.textContent = '⏳ Redirecting to payment...';
+  btn.disabled = true;
+});
+</script>
+
+{% endblock %}

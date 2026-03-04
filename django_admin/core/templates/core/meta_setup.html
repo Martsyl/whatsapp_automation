@@ -1,0 +1,420 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Setup — BotMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { font-family: 'DM Sans', sans-serif; background: #f3f4f6; min-height: 100vh; }
+  .page-wrap {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .left-panel {
+    background: #075e54;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: white;
+    text-decoration: none;
+  }
+  .logo span { color: #25D366; }
+  .guide-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .guide-card h5 {
+    font-family: 'Syne', sans-serif;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .guide-step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .guide-step-num {
+    width: 22px; height: 22px;
+    background: #25D366;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #075e54;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .guide-step p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.83rem;
+    line-height: 1.5;
+    margin: 0;
+    font-weight: 300;
+  }
+  .guide-step p strong { color: white; font-weight: 500; }
+  .video-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(37,211,102,0.15);
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #25D366;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .video-btn:hover {
+    background: rgba(37,211,102,0.25);
+    color: #25D366;
+  }
+  .steps-indicator {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+  }
+  .step-dot.active {
+    background: #25D366;
+    width: 24px;
+    border-radius: 4px;
+  }
+  .step-dot.done { background: rgba(37,211,102,0.5); }
+  .step-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.78rem;
+    margin-left: 8px;
+  }
+  .right-panel {
+    background: white;
+    padding: 60px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow-y: auto;
+  }
+  .form-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0d1117;
+    margin-bottom: 6px;
+  }
+  .form-sub {
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 300;
+    margin-bottom: 24px;
+  }
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+  .form-control {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .form-control:focus {
+    border-color: #075e54;
+    box-shadow: 0 0 0 3px rgba(7,94,84,0.1);
+  }
+  .field-hint {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 6px;
+  }
+  .field-hint strong { color: #374151; }
+  .btn-continue {
+    background: #075e54;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-continue:hover {
+    background: #128c7e;
+    transform: translateY(-1px);
+  }
+  .btn-continue:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-back {
+    background: transparent;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    color: #6b7280;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .btn-back:hover { border-color: #075e54; color: #075e54; }
+  .verify-checking {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f0faf9;
+    border: 1px solid rgba(7,94,84,0.15);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 12px;
+  }
+  @media (max-width: 768px) {
+    .page-wrap { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { padding: 40px 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Left Panel — Guide -->
+  <div class="left-panel">
+    <a href="/" class="logo">Bot<span>Mart</span></a>
+
+    <div>
+      <h3 style="font-family:'Syne',sans-serif; color:white; font-size:1.2rem;
+          font-weight:700; margin-bottom:20px;">
+        How to get your Meta credentials
+      </h3>
+
+      <a href="https://youtube.com/your-guide-link" target="_blank" class="video-btn">
+        ▶️ Watch our 5-minute setup video guide
+      </a>
+
+      <div class="guide-card">
+        <h5>🔑 Getting your Access Token</h5>
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <p>Go to <strong>business.facebook.com</strong> → Business Settings</p>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <p>Click <strong>Users → System Users → Add</strong></p>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <p>Name it <strong>"WhatsApp Bot"</strong> and set role to <strong>Admin</strong></p>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">4</div>
+          <p>Click <strong>Add Assets → WhatsApp Accounts</strong> → select your account → Full Control</p>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">5</div>
+          <p>Click <strong>Generate Token</strong> → select your app → enable
+            <strong>whatsapp_business_messaging</strong> → copy token</p>
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <h5>📱 Getting Phone Number ID & WABA ID</h5>
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <p>Go to <strong>developers.facebook.com</strong> → My Apps</p>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <p>Select your app → <strong>WhatsApp → API Setup</strong></p>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <p>You'll see <strong>Phone Number ID</strong> and
+            <strong>WhatsApp Business Account ID</strong> listed there</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="steps-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+        <span class="step-label">Step 2 of 4 — Meta Setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel — Form -->
+  <div class="right-panel">
+    <div style="max-width: 420px; width: 100%;">
+      <h2 class="form-title">Connect your WhatsApp</h2>
+      <p class="form-sub">
+        Enter your Meta credentials below. We'll verify them live
+        before proceeding to payment.
+      </p>
+
+      <!-- Error alert -->
+      {% if error %}
+      <div class="alert border-0 rounded-3 mb-4"
+          style="background:#fff0f0; border-left:4px solid #dc3545 !important;">
+        <div class="d-flex gap-2">
+          <span>❌</span>
+          <div>
+            <strong style="font-size:0.85rem; color:#dc3545;">Verification Failed</strong>
+            <p class="mb-0 small text-muted mt-1">{{ error }}</p>
+            <a href="https://youtube.com/your-guide-link" target="_blank"
+                style="font-size:0.78rem; color:#075e54; text-decoration:none;">
+              Watch setup guide →
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Success alert -->
+      {% if verified %}
+      <div class="alert border-0 rounded-3 mb-4"
+          style="background:#f0faf9; border-left:4px solid #075e54 !important;">
+        <div class="d-flex gap-2 align-items-center">
+          <span>✅</span>
+          <div>
+            <strong style="font-size:0.85rem; color:#075e54;">
+              Token Verified Successfully!
+            </strong>
+            <p class="mb-0 small text-muted mt-1">
+              Your WhatsApp credentials are valid. Proceeding to payment...
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="POST" id="metaForm">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Meta Access Token</label>
+          <textarea name="access_token" class="form-control"
+            rows="3" placeholder="Paste your System User access token here"
+            required style="resize:none;">{{ access_token|default:'' }}</textarea>
+          <div class="field-hint">
+            <strong>Where to find it:</strong>
+            Meta Business Manager → System Users → Generate Token
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Phone Number ID</label>
+          <input type="text" name="phone_number_id" class="form-control"
+            placeholder="e.g. 102802652705452"
+            value="{{ phone_number_id|default:'' }}" required>
+          <div class="field-hint">
+            <strong>Where to find it:</strong>
+            Meta Developer Console → WhatsApp → API Setup
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">WhatsApp Business Account ID (WABA ID)</label>
+          <input type="text" name="waba_id" class="form-control"
+            placeholder="e.g. 104521234567890"
+            value="{{ waba_id|default:'' }}" required>
+          <div class="field-hint">
+            <strong>Where to find it:</strong>
+            Meta Developer Console → WhatsApp → API Setup →
+            WhatsApp Business Account ID
+          </div>
+        </div>
+
+        <button type="submit" class="btn-continue" id="submitBtn">
+          <span id="btnText">Verify & Continue →</span>
+          <div id="btnSpinner" class="spinner-border spinner-border-sm"
+              role="status" style="display:none;"></div>
+        </button>
+
+        <!-- Verifying indicator -->
+        <div class="verify-checking" id="verifyChecking" style="display:none;">
+          <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+          <span class="small text-muted">
+            Verifying your Meta credentials with WhatsApp API...
+          </span>
+        </div>
+
+        <a href="{% url 'register' %}" class="btn-back">← Back</a>
+      </form>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.getElementById('metaForm').addEventListener('submit', function() {
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const btnSpinner = document.getElementById('btnSpinner');
+  const verifyChecking = document.getElementById('verifyChecking');
+
+  btnText.textContent = 'Verifying...';
+  btnSpinner.style.display = 'inline-block';
+  btn.disabled = true;
+  verifyChecking.style.display = 'flex';
+});
+</script>
+</body>
+</html>

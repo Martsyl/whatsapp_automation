@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Almost There — BotMart</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f3f4f6;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card {
+    background: white;
+    border: none;
+    border-radius: 24px;
+    padding: 56px 48px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: #f0faf9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 24px;
+    animation: scaleIn 0.5s ease;
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0d1117;
+    margin-bottom: 12px;
+  }
+  .card-sub {
+    color: #6b7280;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 32px;
+  }
+  .steps-card {
+    background: #f8f9fa;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: left;
+    margin-bottom: 28px;
+  }
+  .steps-card h6 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0d1117;
+    margin-bottom: 14px;
+  }
+  .next-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .next-step:last-child { margin-bottom: 0; }
+  .step-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .step-icon-green { background: #f0faf9; }
+  .step-icon-yellow { background: #fffbeb; }
+  .step-icon-blue { background: #eff6ff; }
+  .step-text {
+    font-size: 0.85rem;
+    color: #374151;
+    line-height: 1.5;
+  }
+  .step-text strong { color: #0d1117; font-weight: 600; }
+  .whatsapp-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25D366;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .whatsapp-btn:hover {
+    background: #1dba57;
+    color: white;
+    transform: translateY(-1px);
+  }
+  .login-link {
+    font-size: 0.85rem;
+    color: #9ca3af;
+  }
+  .login-link a {
+    color: #075e54;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0d1117;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 32px;
+  }
+  .logo span { color: #25D366; }
+  .steps-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #e5e7eb;
+  }
+  .step-dot.done { background: #25D366; }
+  .step-dot.active {
+    background: #075e54;
+    width: 24px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <a href="/" class="logo">Bot<span>Mart</span></a>
+
+  <div class="steps-bar">
+    <div class="step-dot done"></div>
+    <div class="step-dot done"></div>
+    <div class="step-dot done"></div>
+    <div class="step-dot active"></div>
+  </div>
+
+  <div class="success-icon">🎉</div>
+  <h2 class="card-title">You're almost live!</h2>
+  <p class="card-sub">
+    {% if client %}
+    Thanks <strong>{{ client.business_name }}</strong>! Your payment was received
+    and your account is being reviewed.
+    {% else %}
+    Your payment was received and your account is being reviewed.
+    {% endif %}
+    We'll activate your account within <strong>2-4 hours</strong> during
+    business hours.
+  </p>
+
+  <div class="steps-card">
+    <h6>What happens next:</h6>
+    <div class="next-step">
+      <div class="step-icon step-icon-green">✅</div>
+      <div class="step-text">
+        <strong>Payment confirmed</strong><br>
+        Your payment has been received by Paystack.
+      </div>
+    </div>
+    <div class="next-step">
+      <div class="step-icon step-icon-yellow">⏳</div>
+      <div class="step-text">
+        <strong>Account activation</strong><br>
+        Our team reviews your Meta credentials and activates your account (2-4 hours).
+      </div>
+    </div>
+    <div class="next-step">
+      <div class="step-icon step-icon-blue">📧</div>
+      <div class="step-text">
+        <strong>Email confirmation</strong><br>
+        You'll receive an email when your account is live and ready to use.
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp support button -->
+  <a href="https://wa.me/2348000000000?text=Hi!%20I%20just%20signed%20up%20for%20BotMart.%20My%20email%20is%20{% if client %}{{ client.email }}{% endif %}"
+      class="whatsapp-btn" target="_blank">
+    💬 Message us on WhatsApp
+  </a>
+
+  <p class="login-link">
+    Already activated?
+    <a href="{% url 'client_login' %}">Log in here →</a>
+  </p>
+</div>
+</body>
+</html>

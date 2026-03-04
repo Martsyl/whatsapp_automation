@@ -1,0 +1,327 @@
+{% extends 'core/base.html' %}
+{% block title %}Message Templates{% endblock %}
+{% block content %}
+
+<style>
+    .template-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .template-header {
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #075e54, #128c7e);
+        color: white;
+    }
+    .template-body { padding: 20px; }
+    .form-control:focus {
+        border-color: #075e54;
+        box-shadow: 0 0 0 0.2rem rgba(7,94,84,0.15);
+    }
+    .preview-box {
+        background: #f0faf9;
+        border-left: 3px solid #075e54;
+        border-radius: 0 8px 8px 0;
+        padding: 12px;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        color: #333;
+        min-height: 120px;
+    }
+    .btn-whatsapp {
+        background: linear-gradient(135deg, #075e54, #128c7e);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+    .btn-whatsapp:hover {
+        background: linear-gradient(135deg, #064d45, #0f7a6e);
+        color: white;
+    }
+    .rule-chip {
+        background: #e8f5f3;
+        color: #075e54;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-family: monospace;
+        cursor: pointer;
+        border: 1px solid #075e54;
+        transition: all 0.2s;
+    }
+    .rule-chip:hover {
+        background: #075e54;
+        color: white;
+    }
+    .suggestion-btn {
+        background: #e8f5f3;
+        color: #075e54;
+        border: 1px dashed #075e54;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .suggestion-btn:hover {
+        background: #075e54;
+        color: white;
+    }
+    .alert-setup {
+        background: #fff8e1;
+        border-left: 4px solid #ffc107;
+        border-radius: 0 8px 8px 0;
+        padding: 14px 16px;
+    }
+</style>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">💬 Message Templates</h4>
+        <p class="text-muted mb-0">
+            Customize exactly what your bot says to customers.
+            Leave any field blank to use the smart default.
+        </p>
+    </div>
+</div>
+
+<!-- Setup warning if no rules or products -->
+{% if not has_rules and not has_products %}
+<div class="alert-setup mb-4">
+    <h6 class="fw-bold mb-1">⚠️ Set up your bot first</h6>
+    <p class="mb-2 small">
+        You don't have any auto-reply rules or products yet.
+        Your menu and welcome message won't have any keywords to show customers.
+    </p>
+    <a href="{% url 'rules' %}" class="btn btn-sm btn-warning me-2">
+        <i class="fas fa-plus me-1"></i> Add Rules
+    </a>
+    <a href="{% url 'products' %}" class="btn btn-sm btn-warning">
+        <i class="fas fa-box me-1"></i> Add Products
+    </a>
+</div>
+{% endif %}
+
+<!-- Your current rules and products reference -->
+{% if has_rules or has_products %}
+<div class="card template-card mb-4">
+    <div class="template-body">
+        <h6 class="fw-bold mb-3">
+            <i class="fas fa-info-circle text-success me-2"></i>
+            Your Current Keywords — click to insert into any message:
+        </h6>
+
+        {% if has_products %}
+        <p class="text-muted small mb-2 fw-semibold">Product Categories:</p>
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            {% for cat in categories.keys %}
+            <span class="rule-chip" onclick="insertText('{{ cat|lower }}')">
+                🛍️ {{ cat|lower }}
+            </span>
+            {% endfor %}
+        </div>
+
+        <p class="text-muted small mb-2 fw-semibold">Individual Products:</p>
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            {% for product in products %}
+            <span class="rule-chip" onclick="insertText('{{ product.keyword }}')">
+                ▪️ {{ product.keyword }} — {{ product.name }}
+            </span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if has_rules %}
+        <p class="text-muted small mb-2 fw-semibold">Auto-Reply Rules:</p>
+        <div class="d-flex gap-2 flex-wrap">
+            {% for rule in rules %}
+            <span class="rule-chip" onclick="insertText('{{ rule.trigger_keyword }}')">
+                ⚡ {{ rule.trigger_keyword }}
+            </span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <small class="text-muted mt-3 d-block">
+            <i class="fas fa-mouse-pointer me-1"></i>
+            Click any keyword chip above to copy it, then paste into your message template below.
+        </small>
+    </div>
+</div>
+{% endif %}
+
+<form method="POST" id="templateForm">
+    {% csrf_token %}
+
+    <!-- Welcome Message -->
+    <div class="card template-card">
+        <div class="template-header">
+            <h6 class="mb-0">👋 Welcome Message</h6>
+            <small style="opacity:0.8;">Sent when a new customer messages for the first time</small>
+        </div>
+        <div class="template-body">
+            {% if has_rules or has_products %}
+            <button type="button" class="suggestion-btn mb-3"
+                onclick="useDefault('welcome_message', `{{ defaults.welcome_message|escapejs }}`)">
+                <i class="fas fa-magic me-1"></i>
+                Use auto-generated suggestion based on your products & rules
+            </button>
+            {% endif %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Your Custom Message</label>
+                    <textarea name="welcome_message" id="welcome_message"
+                        class="form-control" rows="7"
+                        placeholder="Leave blank to use default...">{% if template.welcome_message %}{{ template.welcome_message }}{% endif %}</textarea>
+                    <small class="text-muted">Leave blank to use default</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Default Preview</label>
+                    <div class="preview-box">{{ defaults.welcome_message }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Message -->
+    <div class="card template-card">
+        <div class="template-header">
+            <h6 class="mb-0">📋 Menu Message</h6>
+            <small style="opacity:0.8;">Sent when customer types "menu"</small>
+        </div>
+        <div class="template-body">
+            {% if has_rules or has_products %}
+            <button type="button" class="suggestion-btn mb-3"
+                onclick="useDefault('menu_message', `{{ defaults.menu_message|escapejs }}`)">
+                <i class="fas fa-magic me-1"></i>
+                Use auto-generated suggestion based on your products & rules
+            </button>
+            {% endif %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Your Custom Message</label>
+                    <textarea name="menu_message" id="menu_message"
+                        class="form-control" rows="7"
+                        placeholder="Leave blank to use default...">{% if template.menu_message %}{{ template.menu_message }}{% endif %}</textarea>
+                    <small class="text-muted">Leave blank to use default</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Default Preview</label>
+                    <div class="preview-box">{{ defaults.menu_message }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closed Message -->
+    <div class="card template-card">
+        <div class="template-header">
+            <h6 class="mb-0">🕐 Closed Message</h6>
+            <small style="opacity:0.8;">Sent when customer messages outside business hours</small>
+        </div>
+        <div class="template-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Your Custom Message</label>
+                    <textarea name="closed_message" id="closed_message"
+                        class="form-control" rows="5"
+                        placeholder="Leave blank to use default...">{% if template.closed_message %}{{ template.closed_message }}{% endif %}</textarea>
+                    <small class="text-muted">Leave blank to use default</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Default Preview</label>
+                    <div class="preview-box">{{ defaults.closed_message }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Human Handoff -->
+    <div class="card template-card">
+        <div class="template-header">
+            <h6 class="mb-0">👤 Human Handoff Message</h6>
+            <small style="opacity:0.8;">Sent when customer types "human" or "agent"</small>
+        </div>
+        <div class="template-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Your Custom Message</label>
+                    <textarea name="handoff_message" id="handoff_message"
+                        class="form-control" rows="5"
+                        placeholder="Leave blank to use default...">{% if template.handoff_message %}{{ template.handoff_message }}{% endif %}</textarea>
+                    <small class="text-muted">Leave blank to use default</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Default Preview</label>
+                    <div class="preview-box">{{ defaults.handoff_message }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fallback Message -->
+    <div class="card template-card">
+        <div class="template-header">
+            <h6 class="mb-0">🤔 Fallback Message</h6>
+            <small style="opacity:0.8;">Sent when no keyword matches</small>
+        </div>
+        <div class="template-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Your Custom Message</label>
+                    <textarea name="fallback_message" id="fallback_message"
+                        class="form-control" rows="4"
+                        placeholder="Leave blank to use default...">{% if template.fallback_message %}{{ template.fallback_message }}{% endif %}</textarea>
+                    <small class="text-muted">Leave blank to use default</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Default Preview</label>
+                    <div class="preview-box">{{ defaults.fallback_message }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-end mt-2 mb-5">
+        <button type="submit" class="btn btn-whatsapp px-5">
+            <i class="fas fa-save me-2"></i> Save All Templates
+        </button>
+    </div>
+</form>
+
+<script>
+    // Insert keyword into the last focused textarea
+    let lastFocused = null;
+
+    document.querySelectorAll('textarea').forEach(ta => {
+        ta.addEventListener('focus', function() {
+            lastFocused = this;
+        });
+    });
+
+    function insertText(text) {
+        if (lastFocused) {
+            const start = lastFocused.selectionStart;
+            const end = lastFocused.selectionEnd;
+            const current = lastFocused.value;
+            lastFocused.value = current.substring(0, start) + text + current.substring(end);
+            lastFocused.focus();
+        } else {
+            // Copy to clipboard if no textarea focused
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`Copied "${text}" — now paste it into your message!`);
+            });
+        }
+    }
+
+    function useDefault(fieldId, value) {
+        document.getElementById(fieldId).value = value;
+    }
+</script>
+
+{% endblock %}

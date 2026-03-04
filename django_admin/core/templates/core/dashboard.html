@@ -1,0 +1,153 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">👋 Welcome, {{ client.business_name }}</h4>
+        <p class="text-muted mb-0">Here's your overview for today</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card p-4 text-center">
+            <i class="fas fa-comments fa-2x text-success mb-2"></i>
+            <h2 class="fw-bold">{{ total_messages }}</h2>
+            <p class="text-muted mb-0">Total Messages</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-4 text-center">
+            <i class="fas fa-arrow-down fa-2x text-primary mb-2"></i>
+            <h2 class="fw-bold">{{ inbound }}</h2>
+            <p class="text-muted mb-0">Received</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-4 text-center">
+            <i class="fas fa-arrow-up fa-2x text-warning mb-2"></i>
+            <h2 class="fw-bold">{{ outbound }}</h2>
+            <p class="text-muted mb-0">Sent</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-4 text-center">
+            <i class="fas fa-robot fa-2x text-danger mb-2"></i>
+            <h2 class="fw-bold">{{ active_rules }}</h2>
+            <p class="text-muted mb-0">Active Rules</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="mb-3">⚡ Quick Actions</h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'rules' %}" class="btn text-white" style="background:#075e54">
+                    <i class="fas fa-plus me-2"></i> Add Auto-Reply Rule
+                </a>
+                <a href="{% url 'contacts' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-user-plus me-2"></i> Add Contact
+                </a>
+                <a href="{% url 'broadcast' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-bullhorn me-2"></i> Send Broadcast
+                </a>
+                <a href="{% url 'analytics' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-chart-line me-2"></i> View Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="mb-3">💬 Recent Messages</h6>
+            {% if recent_messages %}
+                {% for msg in recent_messages %}
+                <div class="d-flex justify-content-between align-items-start mb-2 pb-2 border-bottom">
+                    <div>
+                        <small class="fw-bold">{{ msg.sender_number }}</small>
+                        <p class="mb-0 text-muted small">{{ msg.message_text|truncatechars:50 }}</p>
+                    </div>
+                    <div class="text-end">
+                        {% if msg.direction == 'inbound' %}
+                            <span class="badge bg-primary">In</span>
+                        {% else %}
+                            <span class="badge bg-success">Out</span>
+                        {% endif %}
+                        <br>
+                        <small class="text-muted">{{ msg.timestamp|date:"H:i" }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+                <a href="{% url 'message_history' %}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                    View All Messages
+                </a>
+            {% else %}
+                <p class="text-muted text-center mt-4">No messages yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% if token_error %}
+<div class="alert border-0 rounded-4 mb-4"
+    style="background:#fff0f0; border-left: 4px solid #dc3545 !important;">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h6 class="fw-bold mb-1 text-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                WhatsApp Connection Error
+            </h6>
+            <p class="mb-0 small text-muted">
+                Your Meta access token is invalid or has been revoked.
+                Your bot is currently not responding to messages.
+                Please update your token in your profile settings.
+            </p>
+        </div>
+        <a href="{% url 'profile' %}" class="btn btn-danger btn-sm ms-3">
+            Fix Now
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% if show_renewal_warning %}
+<div class="alert border-0 rounded-4 mb-4 d-flex justify-content-between align-items-center"
+    style="background:#fff8e1; border-left:4px solid #f59e0b !important;">
+  <div>
+    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+    {% if days_left <= 0 %}
+      <strong>Subscription expired!</strong> Your bot is paused.
+    {% else %}
+      <strong>{{ days_left }} days left</strong> on your subscription.
+    {% endif %}
+  </div>
+  <a href="{% url 'renew' %}" class="btn btn-sm btn-warning fw-bold">
+    Renew Now →
+  </a>
+</div>
+{% endif %}
+
+<!-- AI Replies Card (Growth and Pro only) -->
+{% if client.plan != 'starter' %}
+<div class="col-md-3">
+    <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fs-1">🤖</div>
+        <h4 class="fw-bold mb-0">{{ ai_used }}</h4>
+        <p class="text-muted small mb-0">
+            AI Replies Used
+            {% if client.plan == 'growth' %}
+            <br><span class="text-muted">(100/month)</span>
+            {% else %}
+            <br><span class="text-success">(Unlimited)</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}

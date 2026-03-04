@@ -1,0 +1,458 @@
+{% extends 'core/base.html' %}
+{% block title %}Product Catalogue{% endblock %}
+{% block content %}
+
+<style>
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #f8f9fa;
+    }
+    .upload-area:hover {
+        border-color: #075e54;
+        background: #f0faf9;
+    }
+    .upload-area.dragging {
+        border-color: #075e54;
+        background: #e8f5f3;
+    }
+    .product-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    .product-img {
+        height: 220px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .product-img-placeholder {
+        height: 220px;
+        background: linear-gradient(135deg, #f0faf9, #e8f5f3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .keyword-badge {
+        background: #075e54;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-family: monospace;
+    }
+    .category-header {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #6c757d;
+        border-left: 3px solid #075e54;
+        padding-left: 10px;
+    }
+    .add-form-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+    }
+    .form-control:focus {
+        border-color: #075e54;
+        box-shadow: 0 0 0 0.2rem rgba(7,94,84,0.15);
+    }
+    .btn-whatsapp {
+        background: linear-gradient(135deg, #075e54, #128c7e);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-whatsapp:hover {
+        background: linear-gradient(135deg, #064d45, #0f7a6e);
+        color: white;
+        transform: translateY(-1px);
+    }
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .price-tag {
+        background: linear-gradient(135deg, #075e54, #128c7e);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .empty-state {
+        background: linear-gradient(135deg, #f0faf9, #e8f5f3);
+        border-radius: 16px;
+        padding: 60px 20px;
+    }
+</style>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">🛍️ Product Catalogue</h4>
+        <p class="text-muted mb-0">
+            <span class="fw-bold text-success">{{ total_products }}</span> products —
+            customers type a keyword on WhatsApp to view product details
+        </p>
+    </div>
+    <button class="btn btn-whatsapp" data-bs-toggle="collapse" data-bs-target="#addProductForm">
+        <i class="fas fa-plus me-2"></i> Add Product
+    </button>
+</div>
+
+<!-- Add Product Form (Collapsible) -->
+<div class="collapse mb-4" id="addProductForm">
+    <div class="card add-form-card p-4">
+        <h6 class="fw-bold mb-4">
+            <i class="fas fa-box me-2 text-success"></i> New Product
+        </h6>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Product Name *</label>
+                            <input type="text" name="name" class="form-control"
+                                placeholder="e.g Brazilian Hair" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Keyword *
+                                <i class="fas fa-info-circle text-muted ms-1"
+                                    title="Customer types this on WhatsApp"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-terminal text-muted"></i>
+                                </span>
+                                <input type="text" name="keyword" class="form-control"
+                                    placeholder="e.g brazilian" required>
+                            </div>
+                            <small class="text-muted">Customer types this to view product</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Price *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">₦</span>
+                                <input type="text" name="price" class="form-control"
+                                    placeholder="e.g 45,000 - 120,000" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Category</label>
+                            <input type="text" name="category" class="form-control"
+                                placeholder="e.g Hair, Food, Electronics">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="3"
+                                placeholder="Describe the product — quality, sizes, colors available...">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Product Image</label>
+                    <div class="upload-area" id="uploadArea"
+                        onclick="document.getElementById('imageInput').click()">
+                        <div id="uploadPlaceholder">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <p class="mb-1 fw-semibold">Click to upload or drag & drop</p>
+                            <p class="text-muted small mb-0">JPG, PNG, WEBP (max 5MB)</p>
+                        </div>
+                        <div id="imagePreview" style="display:none;">
+                            <img id="previewImg" src="" alt="Preview"
+                                style="max-height:200px; border-radius:8px; object-fit:cover;">
+                            <p class="text-muted small mt-2 mb-0">
+                                Click to change image
+                            </p>
+                        </div>
+                    </div>
+                    <input type="file" name="image_file" id="imageInput"
+                        accept="image/*" style="display:none;">
+                </div>
+
+                <div class="col-md-12 mt-2">
+                    <button type="submit" class="btn btn-whatsapp me-2">
+                        <i class="fas fa-plus me-2"></i> Add Product
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary"
+                        data-bs-toggle="collapse" data-bs-target="#addProductForm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Products Grid -->
+{% if products %}
+    {% regroup products by category as category_list %}
+    {% for category in category_list %}
+
+    <p class="category-header mb-3 mt-4">
+        {{ category.grouper|default:"Uncategorised" }}
+    </p>
+
+    <div class="row g-4 mb-2">
+        {% for product in category.list %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card product-card h-100">
+
+                <!-- Product Image -->
+                {% if product.image_url %}
+                <div style="position:relative; overflow:hidden;">
+                    <img src="{{ product.image_url }}"
+                        class="product-img" alt="{{ product.name }}">
+                    <div style="position:absolute; top:10px; right:10px;">
+                        {% if product.is_active %}
+                            <span class="badge bg-success shadow-sm">
+                                <span class="status-dot bg-white"></span>Active
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger shadow-sm">
+                                <span class="status-dot bg-white"></span>Inactive
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="product-img-placeholder" style="position:relative;">
+                    <i class="fas fa-image fa-3x" style="color:#075e54; opacity:0.3;"></i>
+                    <p class="text-muted small mt-2 mb-0">No image</p>
+                    <div style="position:absolute; top:10px; right:10px;">
+                        {% if product.is_active %}
+                            <span class="badge bg-success shadow-sm">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger shadow-sm">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Product Details -->
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-1">{{ product.name }}</h6>
+                    {% if product.description %}
+                    <p class="text-muted small mb-2" style="line-height:1.4;">
+                        {{ product.description|truncatechars:80 }}
+                    </p>
+                    {% endif %}
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                        <span class="price-tag">₦{{ product.price }}</span>
+                        <span class="keyword-badge">
+                            <i class="fas fa-terminal me-1"></i>{{ product.keyword }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card-footer bg-white border-top-0 p-3 pt-0">
+                    <div class="d-flex gap-2">
+                        <form method="POST" class="flex-fill">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle">
+                            <input type="file" name="image_file" id="imageInput"
+                            accept="image/jpeg,image/png,image/webp" style="display:none;">
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <button class="btn btn-sm btn-outline-secondary w-100">
+                                {% if product.is_active %}
+                                    <i class="fas fa-pause me-1"></i>Deactivate
+                                {% else %}
+                                    <i class="fas fa-play me-1"></i>Activate
+                                {% endif %}
+                            </button>
+                        </form>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <button class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Delete {{ product.name }}? Image will also be removed from storage.')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+{% else %}
+<div class="empty-state text-center">
+    <i class="fas fa-box-open fa-4x mb-3" style="color:#075e54; opacity:0.4;"></i>
+    <h5 class="fw-bold text-muted">No products yet</h5>
+    <p class="text-muted small mb-4">
+        Add your first product and customers can browse<br>
+        your catalogue directly on WhatsApp
+    </p>
+    <button class="btn btn-whatsapp"
+        data-bs-toggle="collapse" data-bs-target="#addProductForm">
+        <i class="fas fa-plus me-2"></i> Add Your First Product
+    </button>
+</div>
+{% endif %}
+
+<!-- PAGINATION -->
+{% if paginator.num_pages > 1 %}
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <small class="text-muted">
+        Showing page {{ messages_list.number }} of {{ paginator.num_pages }}
+    </small>
+    <nav>
+        <ul class="pagination pagination-sm mb-0">
+
+            <!-- Previous -->
+            {% if messages_list.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ messages_list.previous_page_number }}">
+                    &laquo; Prev
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo; Prev</span>
+            </li>
+            {% endif %}
+
+            <!-- Page numbers -->
+            {% for num in paginator.page_range %}
+                {% if messages_list.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > messages_list.number|add:'-3' and num < messages_list.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next -->
+            {% if messages_list.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ messages_list.next_page_number }}">
+                    Next &raquo;
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next &raquo;</span>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% if paginator.num_pages > 1 %}
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <small class="text-muted">
+        Page {{ contacts.number }} of {{ paginator.num_pages }}
+    </small>
+    <nav>
+        <ul class="pagination pagination-sm mb-0">
+            {% if contacts.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ contacts.previous_page_number }}">&laquo; Prev</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+            {% endif %}
+
+            {% for num in paginator.page_range %}
+                {% if contacts.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > contacts.number|add:'-3' and num < contacts.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if contacts.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ contacts.next_page_number }}">Next &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const previewImg = document.getElementById('previewImg');
+
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+                uploadPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragging');
+    });
+
+    uploadArea.addEventListener('dragleave', function() {
+        this.classList.remove('dragging');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragging');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            imageInput.files = e.dataTransfer.files;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                previewImg.src = evt.target.result;
+                imagePreview.style.display = 'block';
+                uploadPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+{% endblock %}

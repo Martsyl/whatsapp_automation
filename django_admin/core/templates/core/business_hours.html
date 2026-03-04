@@ -1,0 +1,212 @@
+{% extends 'core/base.html' %}
+{% block title %}Business Hours{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">🕐 Business Hours</h4>
+        <p class="text-muted mb-0">Set when your WhatsApp bot is active</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <form method="POST">
+        {% csrf_token %}
+        <table class="table align-middle">
+            <thead style="background:#f8f9fa">
+                <tr>
+                    <th>Day</th>
+                    <th>Open</th>
+                    <th>Opening Time</th>
+                    <th>Closing Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in days_data %}
+                <tr>
+                    <td class="fw-bold">{{ day.day_name }}</td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input day-toggle"
+                                type="checkbox"
+                                name="is_open_{{ day.day_num }}"
+                                id="is_open_{{ day.day_num }}"
+                                data-day="{{ day.day_num }}"
+                                {% if day.is_open %}checked{% endif %}>
+                        </div>
+                    </td>
+                    <td>
+    <input type="time"
+        name="open_time_{{ day.day_num }}"
+        class="form-control time-input"
+        style="width:140px"
+        data-day="{{ day.day_num }}"
+        value="{{ day.open_time }}"
+        placeholder="Required if open">
+</td>
+<td>
+    <input type="time"
+        name="close_time_{{ day.day_num }}"
+        class="form-control time-input"
+        style="width:140px"
+        data-day="{{ day.day_num }}"
+        value="{{ day.close_time }}"
+        placeholder="Required if open">
+</td>
+                  <td>
+    <div class="form-check">
+        <input type="checkbox"
+            class="form-check-input allday-toggle"
+            id="allday_{{ day.day_num }}"
+            name="is_allday_{{ day.day_num }}"
+            data-day="{{ day.day_num }}"
+            {% if day.is_allday %}checked{% endif %}>
+        <label class="form-check-label small text-muted" for="allday_{{ day.day_num }}">
+            24hrs
+        </label>
+    </div>
+</td>
+                    <td>
+                        {% if day.is_open %}
+                            <span class="badge bg-success" id="status_{{ day.day_num }}">Open</span>
+                        {% else %}
+                            <span class="badge bg-danger" id="status_{{ day.day_num }}">Closed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn text-white px-4" style="background:#075e54">
+                <i class="fas fa-save me-2"></i> Save Business Hours
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="setAllOpen">
+                Set All Open
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="setWeekdaysOnly">
+                Weekdays Only
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mt-4">
+    <h6>ℹ️ How Business Hours Work</h6>
+    <p class="text-muted small mb-0">
+        When a customer messages outside your set hours they will automatically 
+        receive a <strong>"We're currently closed"</strong> message instead of 
+        the normal auto-reply. If no hours are set your bot will respond 24/7.
+    </p>
+</div>
+
+<script>
+    document.querySelectorAll('.day-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const day = this.dataset.day;
+            const statusCell = document.getElementById(`status_${day}`);
+            statusCell.className = this.checked ? 'badge bg-success' : 'badge bg-danger';
+            statusCell.textContent = this.checked ? 'Open' : 'Closed';
+
+            // Show/hide time inputs
+            const openInput = document.querySelector(`[name="open_time_${day}"]`);
+            const closeInput = document.querySelector(`[name="close_time_${day}"]`);
+            const allDayCheck = document.getElementById(`allday_${day}`);
+            if (this.checked) {
+                openInput.disabled = false;
+                closeInput.disabled = false;
+                if (allDayCheck) allDayCheck.disabled = false;
+            } else {
+                openInput.disabled = true;
+                closeInput.disabled = true;
+                if (allDayCheck) allDayCheck.disabled = true;
+            }
+        });
+    });
+
+    // Handle "Open 24hrs" checkbox per day
+   document.querySelectorAll('.allday-toggle').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const day = this.dataset.day;
+        const openInput = document.querySelector(`[name="open_time_${day}"]`);
+        const closeInput = document.querySelector(`[name="close_time_${day}"]`);
+        if (this.checked) {
+            openInput.value = '00:00';
+            closeInput.value = '23:59';
+            openInput.disabled = true;
+            closeInput.disabled = true;
+        } else {
+            openInput.value = '';
+            closeInput.value = '';
+            openInput.disabled = false;
+            closeInput.disabled = false;
+        }
+    });
+
+    // On page load, disable inputs if already checked
+    if (cb.checked) {
+        const day = cb.dataset.day;
+        document.querySelector(`[name="open_time_${day}"]`).disabled = true;
+        document.querySelector(`[name="close_time_${day}"]`).disabled = true;
+    }
+});
+    document.getElementById('setAllOpen').addEventListener('click', function() {
+        document.querySelectorAll('.day-toggle').forEach(toggle => {
+            toggle.checked = true;
+            const day = toggle.dataset.day;
+            const badge = document.getElementById(`status_${day}`);
+            badge.className = 'badge bg-success';
+            badge.textContent = 'Open';
+            document.querySelector(`[name="open_time_${day}"]`).disabled = false;
+            document.querySelector(`[name="close_time_${day}"]`).disabled = false;
+        });
+    });
+
+    document.getElementById('setWeekdaysOnly').addEventListener('click', function() {
+        document.querySelectorAll('.day-toggle').forEach(toggle => {
+            const day = parseInt(toggle.dataset.day);
+            toggle.checked = day < 5;
+            const badge = document.getElementById(`status_${day}`);
+            badge.className = day < 5 ? 'badge bg-success' : 'badge bg-danger';
+            badge.textContent = day < 5 ? 'Open' : 'Closed';
+            document.querySelector(`[name="open_time_${day}"]`).disabled = day >= 5;
+            document.querySelector(`[name="close_time_${day}"]`).disabled = day >= 5;
+        });
+    });
+
+    // Validate before form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const toggles = document.querySelectorAll('.day-toggle');
+        let valid = true;
+
+        toggles.forEach(toggle => {
+            if (toggle.checked) {
+                const day = toggle.dataset.day;
+                const openTime = document.querySelector(`[name="open_time_${day}"]`).value;
+                const closeTime = document.querySelector(`[name="close_time_${day}"]`).value;
+                const dayName = toggle.closest('tr').querySelector('td').textContent.trim();
+                const isAllDay = document.getElementById(`allday_${day}`)?.checked;
+
+                if (isAllDay) return; // skip validation for 24hr days
+
+                if (!openTime || !closeTime) {
+                    alert(`${dayName} is marked open — please set both open and close time, or check "Open 24hrs".`);
+                    valid = false;
+                    return;
+                }
+
+                // Allow overnight hours e.g 06:00 to 02:00
+                // Only invalid if open and close are exactly the same
+                if (openTime === closeTime) {
+                    alert(`${dayName} open and close time cannot be the same. Use "Open 24hrs" for full day.`);
+                    valid = false;
+                }
+            }
+        });
+
+        if (!valid) e.preventDefault();
+    });
+</script>
+{% endblock %}

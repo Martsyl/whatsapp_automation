@@ -1,0 +1,154 @@
+{% extends 'core/base.html' %}
+{% block title %}Contacts{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">📱 Contacts</h4>
+        <p class="text-muted mb-0">
+            {{ total_contacts }} total —
+            <span class="text-success">{{ active_contacts }} active</span> —
+            <span class="text-danger">{{ opted_out_contacts }} opted out</span>
+        </p>
+    </div>
+    <button class="btn text-white" style="background:#075e54"
+        data-bs-toggle="modal" data-bs-target="#importModal">
+        <i class="fas fa-file-csv me-2"></i> Import CSV
+    </button>
+</div>
+
+<!-- Add Contact -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h6>Add Single Contact</h6>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="name" class="form-control" placeholder="Contact name" required>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="phone_number" class="form-control" placeholder="Phone e.g 2348012345678" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn w-100 text-white" style="background:#075e54">Add</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Contacts Table -->
+<div class="card border-0 shadow-sm rounded-4">
+    <table class="table table-hover mb-0">
+    <thead style="background:#f8f9fa">
+        <tr>
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Status</th>
+            <th>Added</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for contact in contacts %}
+        <tr>
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.phone_number }}</td>
+            <td>
+                {% if contact.opted_out %}
+                    <span class="badge bg-danger">Opted Out</span>
+                {% else %}
+                    <span class="badge bg-success">Active</span>
+                {% endif %}
+            </td>
+            <td>{{ contact.created_at|date:"M d, Y" }}</td>
+            <td>
+                <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="contact_id" value="{{ contact.id }}">
+                    <button class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('Delete this contact?')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+                No contacts yet. Add one above or import a CSV file.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<!-- CSV Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header" style="background:#075e54; color:white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-csv me-2"></i> Import CSV Contacts
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Your CSV should have columns for <strong>name</strong> and <strong>phone number</strong>.
+                    The system will auto-detect them. If it can't, specify them manually below.
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="import_csv">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select CSV File</label>
+                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                    </div>
+
+                    <p class="text-muted small mb-2">
+                        Optional — only fill these if auto-detection fails:
+                    </p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Name Column</label>
+                            <input type="text" name="name_column" class="form-control" 
+                                placeholder="e.g. name, full name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Column</label>
+                            <input type="text" name="phone_column" class="form-control" 
+                                placeholder="e.g. phone, mobile">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Phone numbers will be auto-cleaned. Nigerian numbers starting 
+                        with 0 will be converted to 234 format automatically.
+                    </div>
+
+                    <button type="submit" class="btn w-100 text-white" style="background:#075e54">
+                        <i class="fas fa-upload me-2"></i> Import Contacts
+                    </button>
+                </form>
+
+                <hr>
+                <p class="text-muted small text-center mb-2">Need a template?</p>
+                <a href="data:text/csv;charset=utf-8,name,phone_number%0AJohn Doe,2348012345678%0AJane Smith,2347098765432" 
+                   download="contacts_template.csv"
+                   class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="fas fa-download me-2"></i> Download CSV Template
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
