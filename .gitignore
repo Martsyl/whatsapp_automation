@@ -3,6 +3,9 @@ venv/
 # Environment variables
 .env
 .env.*
-/logs/*.log
 /errors.log
 /general.log
+__pycache__/
+*.pyc
+logs/
+db.sqlite3
