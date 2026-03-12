@@ -247,3 +247,35 @@ CACHES = {
         'LOCATION': 'redis://127.0.0.1:6379/1',  # DB 1 (Celery uses DB 0)
     }
 }
+# settings.py
+
+DEBUG = False  # Fix W018
+
+# Fix W004 - HSTS (tells browsers to always use HTTPS)
+# Start with a small value, increase to 31536000 (1 year) once you're confident SSL works
+SECURE_HSTS_SECONDS = 3600
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Fix W008 - Let Nginx handle SSL redirect instead of Django
+# Set this to True ONLY if you're not using Nginx/reverse proxy
+# Since you're using Nginx, keep it False and let Nginx redirect HTTP → HTTPS
+SECURE_SSL_REDIRECT = False  # Nginx handles this
+
+# Fix W012 - Secure session cookie
+SESSION_COOKIE_SECURE = True
+
+# Fix W016 - Secure CSRF cookie
+CSRF_COOKIE_SECURE = True
+# ─────────────────────────────────────────────
+# SSL / SECURITY — only active in production
+# ─────────────────────────────────────────────
+if not DEBUG:
+    SECURE_HSTS_SECONDS            = 3600  # increase to 31536000 after SSL confirmed working
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD            = True
+    SESSION_COOKIE_SECURE          = True
+    CSRF_COOKIE_SECURE             = True
+    SECURE_SSL_REDIRECT            = False  # Nginx handles HTTP → HTTPS redirect
+
+SILENCED_SYSTEM_CHECKS = ['security.W008']  # W008: Nginx handles SSL redirect, not Django
