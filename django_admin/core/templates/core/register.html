@@ -294,6 +294,40 @@
           </div>
         </div>
 
+          
+        <!-- ── CONSENT CHECKBOX ── -->
+        <div class="p-3 rounded-3 mb-4" style="background:#f8fffe;border:1px solid #d1fae5;">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="consent"
+                   id="consentCheck" required />
+            <label class="form-check-label small" for="consentCheck">
+              I have read and agree to BotMart's
+              <a href="{% url 'terms' %}" target="_blank" style="color:#075e54;font-weight:600;">
+                Terms & Conditions
+              </a>
+              and
+              <a href="{% url 'privacy' %}" target="_blank" style="color:#075e54;font-weight:600;">
+                Privacy Policy
+              </a>.
+              I understand how my data will be used.
+            </label>
+          </div>
+
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="whatsapp_consent"
+                   id="waConsentCheck" required />
+            <label class="form-check-label small" for="waConsentCheck">
+              I agree to comply with
+              <a href="https://www.whatsapp.com/legal/business-policy/" target="_blank"
+                 style="color:#075e54;font-weight:600;">
+                WhatsApp Business Policy
+              </a>
+              and will only message customers who have consented to receive messages from my business.
+            </label>
+          </div>
+        </div>
+        <!-- ── END CONSENT ── -->
+
         <button type="submit" class="btn-register" id="submitBtn">
           Continue to Meta Setup →
         </button>

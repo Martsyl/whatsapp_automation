@@ -1,40 +1,127 @@
-{% extends 'core/base.html' %} {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-4">
-    <div class="card shadow border-0 rounded-4 p-4">
-      <div class="text-center mb-4">
-        <i class="fab fa-whatsapp fa-3x" style="color: #25d366"></i>
-        <h4 class="mt-2">Client Login</h4>
-      </div>
-      <form method="POST">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          <input type="email" name="email" class="form-control" required />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Password</label>
-          <input
-            type="password"
-            name="password"
-            class="form-control"
-            required
-          />
-        </div>
-        <div class="text-center mt-3">
-    <a href="{% url 'forgot_password' %}" class="text-muted small">
-        Forgot your password?
+{% extends 'core/basepage.html' %}
+{% block title %}Log In — BotMart{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Login is a full-bleed split layout — suppress normal nav+footer */
+  .bm-nav, .bm-footer { display: none; }
+  main { min-height: 100vh; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+
+  <!-- LEFT: Brand panel -->
+  <div class="auth-brand">
+    <div class="auth-brand__grid"></div>
+    <div class="auth-brand__glow"></div>
+
+    <a href="/" class="bm-nav__logo" style="text-decoration:none; position:relative; z-index:1;">
+      <div class="bm-nav__logo-mark">🤖</div>
+      <span class="bm-nav__logo-name" style="color:white;">Bot<em>Mart</em></span>
     </a>
-</div>
-        <button
-          type="submit"
-          class="btn w-100 text-white"
-          style="background: #075e54"
-        >
-          Login
-        </button>
-      </form>
+
+    <div class="auth-brand__content">
+      <h2 class="auth-brand__headline">
+        Automate your
+        <em>WhatsApp sales.</em>
+      </h2>
+      <p class="auth-brand__sub">The smartest way for Nigerian businesses to handle enquiries, orders, and customer service — 24/7.</p>
+    </div>
+
+    <div class="auth-brand__features">
+      <div class="auth-brand__feat-item">
+        <div class="auth-brand__feat-ico">⚡</div>
+        <div class="auth-brand__feat-text"><strong>Instant auto-replies</strong> — respond to customers the moment they message you</div>
+      </div>
+      <div class="auth-brand__feat-item">
+        <div class="auth-brand__feat-ico">🛒</div>
+        <div class="auth-brand__feat-text"><strong>Product catalogue</strong> — let customers browse and order via WhatsApp</div>
+      </div>
+      <div class="auth-brand__feat-item">
+        <div class="auth-brand__feat-ico">🤖</div>
+        <div class="auth-brand__feat-text"><strong>AI Smart Reply</strong> — Claude answers complex questions on your behalf</div>
+      </div>
     </div>
   </div>
+
+  <!-- RIGHT: Form panel -->
+  <div class="auth-form-side">
+    <div class="auth-form-box">
+
+      <div class="auth-form-box__header">
+        <div class="auth-form-box__label">Welcome back</div>
+        <h1 class="auth-form-box__title">Log in to BotMart</h1>
+        <p class="auth-form-box__sub">Enter your credentials to access your dashboard.</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="notice notice--red" style="margin-bottom:18px;">
+            <span class="notice__icon">⚠️</span> {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="field">
+          <label for="email">Email address <span class="req">*</span></label>
+          <input class="field-input" type="email" id="email" name="email"
+                 placeholder="you@example.com" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span class="req">*</span></label>
+          <div class="field-pw">
+            <input class="field-input field-input--password" type="password"
+                   id="password" name="password"
+                   placeholder="Your password" autocomplete="current-password" required>
+            <button type="button" class="field-pw__toggle" onclick="togglePw(this)" aria-label="Toggle password visibility">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <div class="field-footer">
+          <a href="{% url 'forgot_password' %}">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px; font-size:0.95rem; border-radius:10px; margin-top:6px;">
+          Log in →
+        </button>
+      </form>
+
+      <div class="auth-divider">or</div>
+
+      <div class="auth-footer-text">
+        Don't have an account? <a href="{% url 'register' %}">Create one free →</a>
+      </div>
+
+      <div style="text-align:center; margin-top:32px; padding-top:24px; border-top:1px solid var(--grey-line);">
+        <div style="font-size:0.72rem; color:var(--grey-soft); font-family:'DM Mono',monospace; letter-spacing:0.05em; margin-bottom:10px;">PROTECTED BY</div>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+          <span style="font-size:0.76rem; color:var(--grey-mid);">🔒 256-bit SSL</span>
+          <span style="font-size:0.76rem; color:var(--grey-mid);">🛡 Bcrypt passwords</span>
+          <span style="font-size:0.76rem; color:var(--grey-mid);">✅ Meta verified</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function togglePw(btn) {
+    const input = btn.previousElementSibling;
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.textContent = isText ? '👁' : '🙈';
+  }
+</script>
 {% endblock %}

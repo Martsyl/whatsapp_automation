@@ -1,0 +1,489 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Billing & Payments — BotMart{% endblock %}
+
+{% block content %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* { font-family: 'Inter', sans-serif; }
+
+:root {
+  --green:    #075e54;
+  --green-dk: #054d44;
+  --green-lt: #f0fdf4;
+  --green-bd: #d1fae5;
+  --ink:      #0f172a;
+  --ink2:     #334155;
+  --muted:    #64748b;
+  --subtle:   #94a3b8;
+  --bg:       #f8fafc;
+  --border:   #e2e8f0;
+  --white:    #ffffff;
+  --r:        14px;
+  --shadow:   0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+/* ── Layout ── */
+.billing-wrap { max-width: 900px; }
+
+.pg-head {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  margin-bottom: 28px; flex-wrap: wrap;
+}
+.pg-head-left h4 {
+  font-size: 1.2rem; font-weight: 700;
+  color: var(--ink); margin: 0 0 3px;
+  letter-spacing: -0.02em;
+}
+.pg-head-left p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+.btn-renew {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--green); color: #fff;
+  padding: 8px 18px; border-radius: 9px;
+  font-size: 0.82rem; font-weight: 600;
+  text-decoration: none; transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-renew:hover { background: var(--green-dk); color: #fff; }
+.btn-renew.urgent { background: #dc2626; }
+.btn-renew.urgent:hover { background: #b91c1c; }
+
+/* ── Card base ── */
+.card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--shadow);
+  overflow: hidden; margin-bottom: 16px;
+}
+
+/* ── Subscription card ── */
+.sub-card-top {
+  background: var(--green);
+  padding: 24px 28px;
+}
+.sub-top-row {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.sub-plan-name {
+  font-size: 1.1rem; font-weight: 700; color: #fff;
+  letter-spacing: -0.02em; margin-bottom: 4px;
+}
+.sub-plan-meta {
+  font-size: 0.78rem; color: rgba(255,255,255,0.55);
+  display: flex; align-items: center; gap: 8px;
+}
+.sub-plan-meta .dot-active  { color: #4ade80; }
+.sub-plan-meta .dot-inactive { color: #f87171; }
+
+/* Progress */
+.sub-progress { margin-top: 20px; }
+.sub-progress-row {
+  display: flex; justify-content: space-between;
+  font-size: 0.72rem; color: rgba(255,255,255,0.45);
+  margin-bottom: 6px;
+}
+.sub-progress-row .days-label { color: rgba(255,255,255,0.7); font-weight: 500; }
+.prog-track {
+  background: rgba(255,255,255,0.15);
+  border-radius: 999px; height: 5px; overflow: hidden;
+}
+.prog-fill {
+  height: 100%; border-radius: 999px;
+}
+
+/* Info strip */
+.sub-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border);
+}
+.strip-cell {
+  padding: 14px 22px;
+  border-right: 1px solid var(--border);
+}
+.strip-cell:last-child { border-right: none; }
+.strip-lbl {
+  font-size: 0.65rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--subtle); margin-bottom: 5px;
+}
+.strip-val {
+  font-size: 0.88rem; font-weight: 600; color: var(--ink);
+}
+.strip-val.paid    { color: #059669; }
+.strip-val.expired { color: #dc2626; }
+.strip-val.unpaid  { color: var(--subtle); }
+
+/* Alert row */
+.sub-alert {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  padding: 12px 22px; flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  background: var(--green-lt);
+}
+.sub-alert.warn  { background: #fffbeb; border-top-color: #fde68a; }
+.sub-alert.danger { background: #fff5f5; border-top-color: #fecaca; }
+.sub-alert-msg p  { margin: 0; font-size: 0.81rem; }
+.sub-alert-msg .al-title {
+  font-weight: 600; font-size: 0.85rem; margin-bottom: 1px;
+}
+.al-green  { color: #065f46; }
+.al-amber  { color: #92400e; }
+.al-red    { color: #991b1b; }
+
+/* ── Stats row ── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px 20px;
+  box-shadow: var(--shadow);
+}
+.stat-label {
+  font-size: 0.65rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--subtle); margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 1.35rem; font-weight: 700;
+  color: var(--ink); letter-spacing: -0.03em;
+  line-height: 1;
+}
+.stat-value.green { color: var(--green); }
+
+/* ── Table card ── */
+.table-header {
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  justify-content: space-between;
+}
+.table-header h6 {
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--ink); margin: 0;
+}
+.table-header small { font-size: 0.75rem; color: var(--muted); }
+
+.pay-table-wrap { overflow-x: auto; }
+.pay-table {
+  width: 100%; border-collapse: collapse; min-width: 540px;
+}
+.pay-table thead tr { border-bottom: 1px solid var(--border); }
+.pay-table th {
+  font-size: 0.63rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--subtle); padding: 10px 16px;
+  text-align: left; white-space: nowrap;
+  background: #f8fafc;
+}
+.pay-table th:first-child { padding-left: 22px; }
+.pay-table th:last-child  { padding-right: 22px; text-align: right; }
+.pay-table td {
+  padding: 12px 16px; font-size: 0.83rem;
+  color: var(--ink2); border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+.pay-table td:first-child { padding-left: 22px; }
+.pay-table td:last-child  { padding-right: 22px; text-align: right; }
+.pay-table tbody tr:last-child td { border-bottom: none; }
+.pay-table tbody tr:hover { background: #fafcff; }
+
+.td-date-main { font-weight: 600; color: var(--ink); font-size: 0.83rem; }
+.td-date-time { font-size: 0.68rem; color: var(--subtle); margin-top: 1px; }
+.td-amount    { font-weight: 700; color: var(--green); font-size: 0.88rem; }
+
+/* ── Chips ── */
+.chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 9px; border-radius: 999px;
+  font-size: 0.67rem; font-weight: 600; white-space: nowrap;
+}
+.chip-starter  { background: #f1f5f9; color: #475569; }
+.chip-growth   { background: #eff6ff; color: #1d4ed8; }
+.chip-pro      { background: #f5f3ff; color: #6d28d9; }
+.chip-new      { background: #f0fdf4; color: #166534; }
+.chip-renewal  { background: #f0f9ff; color: #0369a1; }
+.chip-paid     { background: #f0fdf4; color: #065f46; }
+
+/* ── Receipt buttons ── */
+.receipt-btns {
+  display: inline-flex; border-radius: 7px;
+  overflow: hidden; border: 1px solid var(--green-bd);
+}
+.rb { 
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; font-size: 0.68rem; font-weight: 500;
+  text-decoration: none; transition: all 0.12s;
+  color: #065f46; background: var(--green-lt);
+}
+.rb-view { border-right: 1px solid var(--green-bd); }
+.rb-view:hover { background: var(--green); color: #fff; }
+.rb-save:hover { background: #059669; color: #fff; }
+
+/* ── Empty ── */
+.empty-state {
+  text-align: center; padding: 48px 24px; color: var(--subtle);
+}
+.empty-state .ei { font-size: 2.2rem; margin-bottom: 10px; }
+.empty-state .et { font-weight: 600; color: var(--muted); font-size: 0.9rem; margin-bottom: 4px; }
+.empty-state .es { font-size: 0.8rem; }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .sub-strip { grid-template-columns: repeat(2, 1fr); }
+  .strip-cell:nth-child(2) { border-right: none; }
+  .strip-cell:nth-child(3),
+  .strip-cell:nth-child(4) { border-top: 1px solid var(--border); }
+}
+@media (max-width: 600px) {
+  .pg-head { flex-direction: column; align-items: flex-start; }
+  .sub-card-top { padding: 18px 18px; }
+  .sub-strip { grid-template-columns: 1fr 1fr; }
+  .strip-cell { padding: 12px 16px; }
+  .sub-alert { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .stats-row { gap: 8px; }
+  .stat-card { padding: 14px 14px; }
+  .stat-value { font-size: 1.1rem; }
+  .hide-xs { display: none; }
+}
+@media (max-width: 400px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stats-row .stat-card:last-child { grid-column: span 2; }
+}
+</style>
+
+<div class="billing-wrap">
+
+<!-- ── Page heading ── -->
+<div class="pg-head">
+  <div class="pg-head-left">
+    <h4>Billing &amp; Payments</h4>
+    <p>Manage your subscription and view receipts</p>
+  </div>
+  <a href="{% url 'renew' %}" class="btn-renew">
+    <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> Renew / Upgrade
+  </a>
+</div>
+
+<!-- ── Subscription card ── -->
+<div class="card">
+  <div class="sub-card-top">
+    <div class="sub-top-row">
+      <div>
+        <div class="sub-plan-name">
+          {% if client.plan == 'pro' %}⚡ Pro Plan
+          {% elif client.plan == 'growth' %}🚀 Growth Plan
+          {% else %}Starter Plan{% endif %}
+        </div>
+        <div class="sub-plan-meta">
+          {% if client.is_active %}
+            <span class="dot-active">● Active</span>
+          {% else %}
+            <span class="dot-inactive">● Inactive</span>
+          {% endif %}
+          <span>·</span>
+          <span>Member since {{ client.created_at|date:"M Y" }}</span>
+        </div>
+      </div>
+    </div>
+
+    {% if days_left is not None and days_left >= 0 %}
+    <div class="sub-progress">
+      <div class="sub-progress-row">
+        <span>{{ client.subscription_start|date:"d M Y" }}</span>
+        <span class="days-label">
+          {% if days_left <= 3 %}⚠ {% endif %}{{ days_left }} day{{ days_left|pluralize }} remaining
+        </span>
+        <span>{{ client.subscription_end|date:"d M Y" }}</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="progFill" style="
+          width: 0%;
+          background: {% if days_left <= 3 %}#f87171{% elif days_left <= 7 %}#fbbf24{% else %}#4ade80{% endif %};
+        "></div>
+      </div>
+    </div>
+    <script>
+      (function() {
+        var start  = new Date('{{ client.subscription_start|date:"Y-m-d" }}');
+        var end    = new Date('{{ client.subscription_end|date:"Y-m-d" }}');
+        var today  = new Date();
+        var total  = (end - start) / 86400000;
+        var elapsed = (today - start) / 86400000;
+        var pct = total > 0 ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
+        document.getElementById('progFill').style.width = pct + '%';
+      })();
+    </script>
+    {% else %}
+    <div style="margin-top:14px;">
+      <span style="background:rgba(248,113,113,0.15);color:#fca5a5;
+        padding:3px 11px;border-radius:999px;font-size:0.72rem;font-weight:600;">
+        Subscription expired
+      </span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Info strip -->
+  <div class="sub-strip">
+    <div class="strip-cell">
+      <div class="strip-lbl">Plan</div>
+      <div class="strip-val text-capitalize">{{ client.plan|default:"—" }}</div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-lbl">Status</div>
+      <div class="strip-val {% if client.payment_status == 'paid' %}paid{% elif client.payment_status == 'expired' %}expired{% else %}unpaid{% endif %}">
+        {% if client.payment_status == 'paid' %}● Paid
+        {% elif client.payment_status == 'expired' %}● Expired
+        {% else %}● Unpaid{% endif %}
+      </div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-lbl">Expires</div>
+      <div class="strip-val">
+        {% if client.subscription_end %}{{ client.subscription_end|date:"d M Y" }}{% else %}—{% endif %}
+      </div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-lbl">Payments Made</div>
+      <div class="strip-val">{{ payment_logs|length }}</div>
+    </div>
+  </div>
+
+  <!-- Alert -->
+  <div class="sub-alert {% if days_left is not None and days_left <= 3 and days_left >= 0 %}danger{% elif days_left is not None and days_left <= 7 and days_left >= 0 %}warn{% elif client.payment_status == 'expired' %}danger{% endif %}">
+    <div class="sub-alert-msg">
+      {% if days_left is not None and days_left <= 3 and days_left >= 0 %}
+        <p class="al-title al-red">⚠ Expires in {{ days_left }} day{{ days_left|pluralize }}</p>
+        <p style="color:var(--muted);">Renew immediately to avoid service interruption.</p>
+      {% elif days_left is not None and days_left <= 7 and days_left >= 0 %}
+        <p class="al-title al-amber">Renew soon — {{ days_left }} days left</p>
+        <p style="color:var(--muted);">Renew early to keep your bot running without interruption.</p>
+      {% elif client.payment_status == 'expired' %}
+        <p class="al-title al-red">Subscription expired — bot is paused</p>
+        <p style="color:var(--muted);">Renew to reactivate your bot instantly.</p>
+      {% else %}
+        <p class="al-title al-green">Subscription is active</p>
+        <p style="color:var(--muted);">You can upgrade or renew early at any time.</p>
+      {% endif %}
+    </div>
+    <a href="{% url 'renew' %}"
+       class="btn-renew {% if client.payment_status == 'expired' or days_left is not None and days_left <= 3 %}urgent{% endif %}"
+       style="font-size:0.8rem;">
+      {% if client.payment_status == 'expired' %}Reactivate Now
+      {% elif days_left is not None and days_left <= 7 %}Renew Now
+      {% else %}Renew / Upgrade{% endif %}
+    </a>
+  </div>
+</div>
+
+<!-- ── Stats row ── -->
+{% if payment_logs %}
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Spent</div>
+    <div class="stat-value green">₦{% widthratio total_spent 100 1 %}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Payments</div>
+    <div class="stat-value">{{ payment_logs|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Renewals</div>
+    <div class="stat-value">{{ renewal_count }}</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Payment history ── -->
+<div class="card">
+  <div class="table-header">
+    <h6>Payment History</h6>
+    <small>{{ payment_logs|length }} payment{{ payment_logs|length|pluralize }}</small>
+  </div>
+
+  {% if payment_logs %}
+  <div class="pay-table-wrap">
+    <table class="pay-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Plan</th>
+          <th class="hide-xs">Duration</th>
+          <th>Type</th>
+          <th class="hide-xs">Period</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Receipt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in payment_logs %}
+        <tr>
+          <td>
+            <div class="td-date-main">{{ log.paid_at|date:"d M Y" }}</div>
+            <div class="td-date-time">{{ log.paid_at|date:"H:i" }}</div>
+          </td>
+          <td>
+            {% if log.plan == 'pro' %}<span class="chip chip-pro">⚡ Pro</span>
+            {% elif log.plan == 'growth' %}<span class="chip chip-growth">🚀 Growth</span>
+            {% else %}<span class="chip chip-starter">Starter</span>{% endif %}
+          </td>
+          <td class="hide-xs" style="color:var(--muted);font-size:0.8rem;">
+            {% if log.months == 1 %}1 mo
+            {% elif log.months == 3 %}3 mo
+            {% elif log.months == 6 %}6 mo
+            {% elif log.months == 12 %}12 mo
+            {% else %}{{ log.months }}mo{% endif %}
+          </td>
+          <td>
+            {% if log.is_renewal %}<span class="chip chip-renewal">Renewal</span>
+            {% else %}<span class="chip chip-new">New</span>{% endif %}
+          </td>
+          <td class="hide-xs" style="font-size:0.76rem;color:var(--muted);">
+            {{ log.subscription_start|date:"d M" }} – {{ log.subscription_end|date:"d M Y" }}
+          </td>
+          <td class="td-amount">₦{% widthratio log.amount_kobo 100 1 %}</td>
+          <td><span class="chip chip-paid">✓ Paid</span></td>
+          <td>
+            <div class="receipt-btns">
+              <a href="{% url 'view_receipt' log.reference %}" target="_blank" class="rb rb-view">
+                <i class="fas fa-eye"></i> View
+              </a>
+              <a href="{% url 'download_receipt' log.reference %}" class="rb rb-save">
+                <i class="fas fa-download"></i> Save
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="ei">🧾</div>
+    <p class="et">No payments yet</p>
+    <p class="es">Your payment history will appear here after your first subscription.</p>
+  </div>
+  {% endif %}
+</div>
+
+</div>{# /billing-wrap #}
+
+{# ── Comma-format amounts via JS (widthratio has no intcomma) ── #}
+<script>
+document.querySelectorAll('.td-amount, .stat-value.green').forEach(el => {
+  el.textContent = el.textContent.replace(/₦(\d+)/, (_, n) =>
+    '₦' + parseInt(n).toLocaleString('en-NG')
+  );
+});
+</script>
+
+{% endblock %}

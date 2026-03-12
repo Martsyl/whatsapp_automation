@@ -3,10 +3,13 @@
 import time
 import smtplib
 import os
+import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from celery import shared_task
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────
@@ -410,108 +413,152 @@ def send_campaign(self, campaign_id):
     """
     Main Celery task — sends campaign emails in batches of 50.
     Runs in background, updates progress in DB after each batch.
+    Retries up to 3 times on unexpected failure with 60s delay.
     """
     from core.models import EmailCampaign, CampaignLog, Client
+
+    logger.info(f"[send_campaign] Starting campaign id={campaign_id}")
 
     try:
         campaign = EmailCampaign.objects.get(id=campaign_id)
     except EmailCampaign.DoesNotExist:
-        print(f"Campaign {campaign_id} not found")
+        logger.error(f"[send_campaign] Campaign {campaign_id} not found — aborting")
         return
 
     if campaign.status not in ['queued', 'sending']:
-        print(f"Campaign {campaign_id} is {campaign.status} — skipping")
+        logger.warning(
+            f"[send_campaign] Campaign {campaign_id} has status '{campaign.status}' — skipping"
+        )
         return
 
-    campaign.status = 'sending'
-    campaign.save(update_fields=['status'])
+    try:
+        campaign.status = 'sending'
+        campaign.save(update_fields=['status'])
 
-    if campaign.recipient_type == 'all':
-        clients = Client.objects.filter(is_active=True)
-    elif campaign.recipient_type == 'plan':
-        clients = Client.objects.filter(is_active=True, plan=campaign.target_plan)
-    elif campaign.recipient_type == 'selected':
-        clients = campaign.selected_clients.filter(is_active=True)
-    else:
-        clients = Client.objects.none()
+        if campaign.recipient_type == 'all':
+            clients = Client.objects.filter(is_active=True)
+        elif campaign.recipient_type == 'plan':
+            clients = Client.objects.filter(is_active=True, plan=campaign.target_plan)
+        elif campaign.recipient_type == 'selected':
+            clients = campaign.selected_clients.filter(is_active=True)
+        else:
+            clients = Client.objects.none()
 
-    clients = list(clients)
+        clients = list(clients)
 
-    campaign.total_recipients = len(clients)
-    campaign.save(update_fields=['total_recipients'])
+        campaign.total_recipients = len(clients)
+        campaign.save(update_fields=['total_recipients'])
 
-    print(f"📧 Starting campaign '{campaign.subject}' → {len(clients)} recipients")
+        logger.info(
+            f"[send_campaign] Campaign '{campaign.subject}' → {len(clients)} recipients"
+        )
 
-    BATCH_SIZE   = 50
-    BATCH_DELAY  = 1.5
-    sent_count   = 0
-    failed_count = 0
+        BATCH_SIZE   = 50
+        BATCH_DELAY  = 1.5
+        sent_count   = 0
+        failed_count = 0
 
-    for i in range(0, len(clients), BATCH_SIZE):
-        batch = clients[i:i + BATCH_SIZE]
+        for i in range(0, len(clients), BATCH_SIZE):
+            batch = clients[i:i + BATCH_SIZE]
 
-        for client in batch:
-            log, created = CampaignLog.objects.get_or_create(
-                campaign=campaign,
-                client=client,
-                defaults={'email': client.email, 'status': 'pending'}
+            for client in batch:
+                try:
+                    log, created = CampaignLog.objects.get_or_create(
+                        campaign=campaign,
+                        client=client,
+                        defaults={'email': client.email, 'status': 'pending'}
+                    )
+
+                    if not created and log.status == 'sent':
+                        sent_count += 1
+                        continue
+
+                    raw_body = campaign.body.replace(
+                        '{business_name}', client.business_name
+                    ).replace(
+                        '{email}', client.email
+                    ).replace(
+                        '{plan}', client.plan.title()
+                    )
+
+                    personalised_body = wrap_with_template(
+                        subject=campaign.subject,
+                        body=raw_body,
+                        business_name=client.business_name,
+                        plan=client.plan.title()
+                    )
+
+                    success, error = send_single_email(
+                        client.email,
+                        campaign.subject,
+                        personalised_body
+                    )
+
+                    if success:
+                        log.status  = 'sent'
+                        log.sent_at = timezone.now()
+                        sent_count += 1
+                        logger.info(f"[send_campaign] Sent to {client.email}")
+                    else:
+                        log.status    = 'failed'
+                        log.error_msg = error
+                        failed_count += 1
+                        logger.warning(
+                            f"[send_campaign] Failed for {client.email}: {error}"
+                        )
+
+                    log.save()
+
+                except Exception as per_client_error:
+                    # One client failing should never stop the whole campaign
+                    failed_count += 1
+                    logger.error(
+                        f"[send_campaign] Unexpected error for client {client.email}: "
+                        f"{per_client_error}",
+                        exc_info=True
+                    )
+                    try:
+                        log.status    = 'failed'
+                        log.error_msg = str(per_client_error)
+                        log.save()
+                    except Exception:
+                        pass
+
+            campaign.sent_count   = sent_count
+            campaign.failed_count = failed_count
+            campaign.save(update_fields=['sent_count', 'failed_count'])
+
+            logger.info(
+                f"[send_campaign] Batch {i // BATCH_SIZE + 1} done "
+                f"— {sent_count} sent, {failed_count} failed"
             )
 
-            if not created and log.status == 'sent':
-                sent_count += 1
-                continue
+            if i + BATCH_SIZE < len(clients):
+                time.sleep(BATCH_DELAY)
 
-            # Personalise raw body
-            raw_body = campaign.body.replace(
-                '{business_name}', client.business_name
-            ).replace(
-                '{email}', client.email
-            ).replace(
-                '{plan}', client.plan.title()
-            )
-
-            # Wrap with full HTML template
-            personalised_body = wrap_with_template(
-                subject=campaign.subject,
-                body=raw_body,
-                business_name=client.business_name,
-                plan=client.plan.title()
-            )
-
-            success, error = send_single_email(
-                client.email,
-                campaign.subject,
-                personalised_body
-            )
-
-            if success:
-                log.status  = 'sent'
-                log.sent_at = timezone.now()
-                sent_count += 1
-                print(f"  ✅ Sent to {client.email}")
-            else:
-                log.status    = 'failed'
-                log.error_msg = error
-                failed_count += 1
-                print(f"  ❌ Failed for {client.email}: {error}")
-
-            log.save()
-
+        campaign.status       = 'completed'
         campaign.sent_count   = sent_count
         campaign.failed_count = failed_count
-        campaign.save(update_fields=['sent_count', 'failed_count'])
+        campaign.save(update_fields=['status', 'sent_count', 'failed_count'])
 
-        print(f"  📦 Batch {i // BATCH_SIZE + 1} done — {sent_count} sent, {failed_count} failed")
+        logger.info(
+            f"[send_campaign] Campaign '{campaign.subject}' complete "
+            f"— {sent_count} sent, {failed_count} failed"
+        )
 
-        if i + BATCH_SIZE < len(clients):
-            time.sleep(BATCH_DELAY)
-
-    campaign.status       = 'completed'
-    campaign.sent_count   = sent_count
-    campaign.failed_count = failed_count
-    campaign.save(update_fields=['status', 'sent_count', 'failed_count'])
-
-    print(f"✅ Campaign '{campaign.subject}' complete — {sent_count} sent, {failed_count} failed")
+    except Exception as e:
+        # Unexpected task-level failure — mark campaign failed and retry
+        logger.error(
+            f"[send_campaign] Task failed for campaign {campaign_id}: {e}",
+            exc_info=True
+        )
+        try:
+            campaign.status = 'failed'
+            campaign.save(update_fields=['status'])
+        except Exception:
+            pass
+        # Retry with 60s delay, up to max_retries=3
+        raise self.retry(exc=e, countdown=60)
 
 
 # ─────────────────────────────────────────────
@@ -526,15 +573,41 @@ def dispatch_scheduled_campaigns():
     """
     from core.models import EmailCampaign
 
-    now = timezone.now()
-    due_campaigns = EmailCampaign.objects.filter(
-        status='draft',
-        scheduled_at__lte=now,
-        scheduled_at__isnull=False
-    )
+    try:
+        now = timezone.now()
+        due_campaigns = EmailCampaign.objects.filter(
+            status='draft',
+            scheduled_at__lte=now,
+            scheduled_at__isnull=False
+        )
 
-    for campaign in due_campaigns:
-        campaign.status = 'queued'
-        campaign.save(update_fields=['status'])
-        send_campaign.delay(campaign.id)
-        print(f"⏰ Scheduled campaign dispatched: {campaign.subject}")
+        dispatched = 0
+        for campaign in due_campaigns:
+            try:
+                campaign.status = 'queued'
+                campaign.save(update_fields=['status'])
+                send_campaign.delay(campaign.id)
+                dispatched += 1
+                logger.info(
+                    f"[dispatch_scheduled_campaigns] Queued campaign: '{campaign.subject}' "
+                    f"(id={campaign.id})"
+                )
+            except Exception as e:
+                # One campaign failing should not stop others from being dispatched
+                logger.error(
+                    f"[dispatch_scheduled_campaigns] Failed to dispatch campaign "
+                    f"id={campaign.id}: {e}",
+                    exc_info=True
+                )
+
+        if dispatched:
+            logger.info(
+                f"[dispatch_scheduled_campaigns] {dispatched} campaign(s) dispatched"
+            )
+
+    except Exception as e:
+        # Catch DB errors or any unexpected failure so Beat keeps running
+        logger.error(
+            f"[dispatch_scheduled_campaigns] Unexpected error: {e}",
+            exc_info=True
+        )

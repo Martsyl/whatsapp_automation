@@ -15,6 +15,9 @@
         color: white;
         padding: 16px 24px;
     }
+    .section-header.ai-header {
+        background: linear-gradient(135deg, #1e1b4b, #3730a3);
+    }
     .section-body { padding: 24px; }
     .info-row {
         display: flex;
@@ -40,9 +43,29 @@
         color: white;
         transform: translateY(-1px);
     }
+    .btn-ai {
+        background: linear-gradient(135deg, #1e1b4b, #3730a3);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-weight: 500;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    .btn-ai:hover {
+        background: linear-gradient(135deg, #17144a, #2f27a0);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(55,48,163,0.3);
+    }
     .form-control:focus {
         border-color: #075e54;
         box-shadow: 0 0 0 0.2rem rgba(7,94,84,0.12);
+    }
+    .form-control.ai-focus:focus {
+        border-color: #3730a3;
+        box-shadow: 0 0 0 0.2rem rgba(55,48,163,0.12);
     }
     .token-status-valid {
         background: #f0faf9;
@@ -58,29 +81,26 @@
     }
     .pulse {
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 10px; height: 10px;
         border-radius: 50%;
         margin-right: 6px;
     }
     .pulse-green {
         background: #28a745;
-        box-shadow: 0 0 0 0 rgba(40,167,69,0.4);
         animation: pulse-green 2s infinite;
     }
     .pulse-red {
         background: #dc3545;
-        box-shadow: 0 0 0 0 rgba(220,53,69,0.4);
         animation: pulse-red 2s infinite;
     }
     @keyframes pulse-green {
-        0% { box-shadow: 0 0 0 0 rgba(40,167,69,0.4); }
-        70% { box-shadow: 0 0 0 8px rgba(40,167,69,0); }
+        0%   { box-shadow: 0 0 0 0 rgba(40,167,69,0.4); }
+        70%  { box-shadow: 0 0 0 8px rgba(40,167,69,0); }
         100% { box-shadow: 0 0 0 0 rgba(40,167,69,0); }
     }
     @keyframes pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.4); }
-        70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+        0%   { box-shadow: 0 0 0 0 rgba(220,53,69,0.4); }
+        70%  { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
         100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
     }
     .hint-box {
@@ -92,6 +112,65 @@
     }
     .hint-box ol { margin-bottom: 0; padding-left: 16px; }
     .hint-box li { margin-bottom: 4px; }
+
+    /* ── AI section styles ── */
+    .ai-plan-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 100px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .ai-badge-locked  { background: #fee2e2; color: #991b1b; }
+    .ai-badge-growth  { background: #dbeafe; color: #1e40af; }
+    .ai-badge-pro     { background: #ede9fe; color: #5b21b6; }
+
+    .ai-usage-bar-wrap {
+        background: #f3f4f6;
+        border-radius: 100px;
+        height: 8px;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+    .ai-usage-bar {
+        height: 100%;
+        border-radius: 100px;
+        background: linear-gradient(90deg, #3730a3, #6d28d9);
+        transition: width 0.5s ease;
+    }
+
+    .ai-tips {
+        background: #f5f3ff;
+        border: 1px solid #ede9fe;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 0.82rem;
+        color: #4c1d95;
+    }
+    .ai-tips ul {
+        margin: 6px 0 0;
+        padding-left: 16px;
+    }
+    .ai-tips li { margin-bottom: 3px; }
+
+    .ai-locked-overlay {
+        background: #fafafa;
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+    }
+
+    .char-counter {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-align: right;
+        margin-top: 4px;
+    }
+    .char-counter.warn { color: #f59e0b; }
+    .char-counter.over { color: #dc3545; }
 </style>
 
 <!-- Page Header -->
@@ -138,6 +217,18 @@
                     </span>
                 </div>
                 <div class="info-row">
+                    <span class="info-label">Plan</span>
+                    <span class="info-value text-capitalize">
+                        {% if client.plan == 'pro' %}
+                        <span style="color:#7c3aed;">⚡ Pro</span>
+                        {% elif client.plan == 'growth' %}
+                        <span style="color:#2563eb;">🚀 Growth</span>
+                        {% else %}
+                        <span style="color:#6b7280;">Starter</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
                     <span class="info-label">Member Since</span>
                     <span class="info-value">{{ client.created_at|date:"M d, Y" }}</span>
                 </div>
@@ -177,6 +268,67 @@
             </div>
         </div>
 
+        <!-- AI Usage Card -->
+        <div class="profile-card">
+            <div class="section-header ai-header">
+                <h6 class="mb-0 fw-bold">
+                    🤖 AI Smart Replies Usage
+                </h6>
+                <small style="opacity:0.8;">Resets every day at midnight</small>
+            </div>
+            <div class="section-body">
+                {% if client.plan == 'starter' %}
+                    <div class="text-center py-2">
+                        <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
+                        <p class="fw-semibold mb-1">Not available on Starter</p>
+                        <p class="text-muted small mb-3">Upgrade to Growth or Pro to unlock AI replies.</p>
+                        <a href="{% url 'renew' %}" class="btn btn-sm btn-warning fw-semibold">
+                            Upgrade Plan →
+                        </a>
+                    </div>
+                {% elif client.plan == 'growth' %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold">Daily Usage</span>
+                        <span class="ai-plan-badge ai-badge-growth">🚀 Growth · 100/day</span>
+                    </div>
+                    {% with used=client.ai_replies_used limit=100 %}
+                    {% with pct=used|floatformat:0 %}
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>{{ used }} used</span>
+                        <span>{{ limit|add:"-"|add:used }} remaining</span>
+                    </div>
+                    <div class="ai-usage-bar-wrap">
+                        <div class="ai-usage-bar"
+                             style="width:{% widthratio used 100 100 %}%;
+                             {% if used >= 90 %}background:linear-gradient(90deg,#dc3545,#b91c1c);{% elif used >= 70 %}background:linear-gradient(90deg,#f59e0b,#d97706);{% endif %}">
+                        </div>
+                    </div>
+                    <p class="small text-muted mt-2 mb-0">
+                        {% if used >= 100 %}
+                        ⚠️ Daily limit reached. Resets at midnight.
+                        {% else %}
+                        {{ limit|add:"-"|add:used }} replies left today.
+                        {% endif %}
+                    </p>
+                    {% endwith %}
+                    {% endwith %}
+                {% else %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold">Today's Usage</span>
+                        <span class="ai-plan-badge ai-badge-pro">⚡ Pro · Unlimited</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="font-size:1.6rem;font-weight:800;color:#7c3aed;">
+                            {{ client.ai_replies_used }}
+                        </div>
+                        <div class="small text-muted">replies sent today<br>
+                            <span style="color:#059669;">∞ No limit</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
     </div>
 
     <!-- Right Column -->
@@ -188,13 +340,9 @@
                 <h6 class="mb-0 fw-bold">
                     <i class="fas fa-key me-2"></i> Update WhatsApp Token
                 </h6>
-                <small style="opacity:0.8;">
-                    Update immediately if your bot stops responding
-                </small>
+                <small style="opacity:0.8;">Update immediately if your bot stops responding</small>
             </div>
             <div class="section-body">
-
-                <!-- How to get token hint -->
                 <div class="hint-box mb-4">
                     <p class="fw-semibold mb-2">
                         <i class="fas fa-info-circle text-success me-1"></i>
@@ -211,7 +359,6 @@
 
                 <form method="POST" action="{% url 'update_token' %}" id="tokenForm">
                     {% csrf_token %}
-
                     <div class="mb-3">
                         <label class="form-label fw-semibold">
                             Access Token
@@ -229,11 +376,8 @@
                                 <i class="fas fa-eye" id="tokenEyeIcon"></i>
                             </button>
                         </div>
-                        <small class="text-muted">
-                            Token will be verified with Meta before saving
-                        </small>
+                        <small class="text-muted">Token will be verified with Meta before saving</small>
                     </div>
-
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Phone Number ID</label>
                         <input type="text"
@@ -245,7 +389,6 @@
                             Found in Meta Developer Console → WhatsApp → API Setup
                         </small>
                     </div>
-
                     <div class="d-grid">
                         <button type="submit" class="btn btn-whatsapp" id="saveBtn">
                             <i class="fas fa-save me-2"></i> Verify & Save Token
@@ -257,14 +400,115 @@
                 <div class="mt-3">
                     {% for message in messages %}
                     <div class="alert rounded-3 border-0
-                        {% if message.tags == 'success' %}alert-success
-                        {% else %}alert-danger{% endif %}">
+                        {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}">
                         {{ message }}
                     </div>
                     {% endfor %}
                 </div>
                 {% endif %}
+            </div>
+        </div>
 
+        <!-- ── AI Business Description ── -->
+        <div class="profile-card">
+            <div class="section-header ai-header">
+                <h6 class="mb-0 fw-bold">
+                    🤖 AI Smart Replies — Business Context
+                </h6>
+                <small style="opacity:0.8;">
+                    Tell the AI about your business so it can reply intelligently
+                </small>
+            </div>
+            <div class="section-body">
+
+                {% if client.plan == 'starter' %}
+                <!-- Locked for Starter -->
+                <div class="ai-locked-overlay">
+                    <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
+                    <h6 class="fw-bold mb-2">AI Smart Replies — Growth & Pro Only</h6>
+                    <p class="text-muted small mb-3">
+                        Upgrade to Growth or Pro to enable AI-powered replies that
+                        understand your business and answer customer questions automatically.
+                    </p>
+                    <a href="{% url 'renew' %}" class="btn btn-warning fw-semibold">
+                        Upgrade to Unlock AI →
+                    </a>
+                </div>
+
+                {% else %}
+                <!-- Available for Growth & Pro -->
+
+                <div class="ai-tips mb-4">
+                    <p class="fw-semibold mb-1">
+                        💡 Tips for a great AI description:
+                    </p>
+                    <ul>
+                        <li>Describe what your business sells or does</li>
+                        <li>Mention your target audience</li>
+                        <li>Include tone (e.g. friendly, professional, casual)</li>
+                        <li>Add FAQs or common questions customers ask</li>
+                        <li>Mention what the AI should NOT say (e.g. don't give prices)</li>
+                    </ul>
+                </div>
+
+                <form method="POST" action="{% url 'update_ai_description' %}" id="aiForm">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Business Description for AI
+                            {% if client.plan == 'pro' %}
+                            <span class="ai-plan-badge ai-badge-pro ms-2">⚡ Pro</span>
+                            {% else %}
+                            <span class="ai-plan-badge ai-badge-growth ms-2">🚀 Growth</span>
+                            {% endif %}
+                        </label>
+                        <textarea
+                            name="business_description"
+                            id="aiDescription"
+                            class="form-control ai-focus"
+                            rows="8"
+                            maxlength="2000"
+                            placeholder="Example:
+We are FreshMart, a Lagos-based online grocery store that delivers fresh fruits, vegetables, and pantry items within 2 hours.
+
+Our customers are busy professionals and families aged 25-45.
+
+Tone: Friendly and helpful. Always greet customers warmly.
+
+We sell: Fruits, Vegetables, Dairy, Beverages, Snacks, and Cleaning supplies.
+
+FAQs:
+- Delivery takes 1-2 hours within Lagos Island
+- Minimum order is ₦5,000
+- We accept bank transfer and card payments
+
+Do NOT: Quote exact prices (tell them to check the catalogue). Do NOT promise same-day delivery outside Lagos Island.">{{ client.business_description|default:'' }}</textarea>
+                        <div class="char-counter" id="charCounter">
+                            <span id="charCount">{{ client.business_description|length|default:0 }}</span> / 2000 characters
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-ai" id="aiSaveBtn">
+                            🤖 Save AI Description
+                        </button>
+                    </div>
+                </form>
+
+                {% if client.business_description %}
+                <div class="mt-3 p-3 rounded-3"
+                     style="background:#f5f3ff;border:1px solid #ede9fe;font-size:0.8rem;color:#5b21b6;">
+                    ✅ AI description is active. Your bot is using this context to reply to customers.
+                </div>
+                {% else %}
+                <div class="mt-3 p-3 rounded-3"
+                     style="background:#fff8e1;border:1px solid #fde68a;font-size:0.8rem;color:#92400e;">
+                    ⚠️ No description set yet. The AI will use only your products and rules as context.
+                </div>
+                {% endif %}
+
+                {% endif %}
             </div>
         </div>
 
@@ -274,8 +518,8 @@
 <script>
 function toggleToken() {
     const input = document.getElementById('accessTokenInput');
-    const icon = document.getElementById('tokenEyeIcon');
-    input.type = input.type === 'password' ? 'text' : 'password';
+    const icon  = document.getElementById('tokenEyeIcon');
+    input.type  = input.type === 'password' ? 'text' : 'password';
     icon.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
 }
 
@@ -296,32 +540,209 @@ function testConnection(btn) {
         const result = document.getElementById('connectionResult');
         result.style.display = 'block';
         if (data.success) {
-            result.innerHTML = `
-                <div class="alert alert-success rounded-3 border-0 small">
-                    ✅ Connection successful! Your bot is working correctly.
-                </div>`;
+            result.innerHTML = `<div class="alert alert-success rounded-3 border-0 small">
+                ✅ Connection successful! Your bot is working correctly.</div>`;
         } else {
-            result.innerHTML = `
-                <div class="alert alert-danger rounded-3 border-0 small">
-                    ❌ Failed: ${data.error}<br>
-                    Please update your token.
-                </div>`;
+            result.innerHTML = `<div class="alert alert-danger rounded-3 border-0 small">
+                ❌ Failed: ${data.error}<br>Please update your token.</div>`;
         }
         btn.innerHTML = originalText;
-        btn.disabled = false;
+        btn.disabled  = false;
     })
     .catch(() => {
         btn.innerHTML = originalText;
-        btn.disabled = false;
+        btn.disabled  = false;
     });
 }
 
-// Show spinner on form submit
+// Token form spinner
 document.getElementById('tokenForm').addEventListener('submit', function() {
     const btn = document.getElementById('saveBtn');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Verifying...';
-    btn.disabled = true;
+    btn.disabled  = true;
+});
+
+// AI form spinner
+const aiForm = document.getElementById('aiForm');
+if (aiForm) {
+    aiForm.addEventListener('submit', function() {
+        const btn = document.getElementById('aiSaveBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+        btn.disabled  = true;
+    });
+}
+
+// Character counter
+const aiDesc    = document.getElementById('aiDescription');
+const charCount = document.getElementById('charCount');
+const charCtr   = document.getElementById('charCounter');
+
+if (aiDesc) {
+    aiDesc.addEventListener('input', function() {
+        const len = this.value.length;
+        charCount.textContent = len;
+        charCtr.className = 'char-counter';
+        if (len > 1800) charCtr.classList.add('over');
+        else if (len > 1500) charCtr.classList.add('warn');
+    });
+}
+
+// ── Delete account modal logic ──
+// Runs after full DOM is loaded so modal elements exist
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput  = document.getElementById('confirmText');
+    const passwordInput = document.getElementById('deletePassword');
+    const deleteBtn     = document.getElementById('confirmDeleteBtn');
+    const deleteModal   = document.getElementById('deleteModal');
+    const deleteForm    = document.getElementById('deleteForm');
+
+    if (!confirmInput || !passwordInput || !deleteBtn) return;
+
+    function checkDeleteForm() {
+        const ready = confirmInput.value === 'DELETE' && passwordInput.value.length >= 6;
+        deleteBtn.disabled     = !ready;
+        deleteBtn.style.opacity = ready ? '1' : '0.5';
+    }
+
+    confirmInput.addEventListener('input',  checkDeleteForm);
+    passwordInput.addEventListener('input', checkDeleteForm);
+
+    // Reset modal fields when closed
+    if (deleteModal) {
+        deleteModal.addEventListener('hidden.bs.modal', function() {
+            confirmInput.value  = '';
+            passwordInput.value = '';
+            deleteBtn.disabled  = true;
+            deleteBtn.style.opacity = '0.5';
+        });
+    }
+
+    // Spinner on submit
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function() {
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Deleting...';
+            deleteBtn.disabled  = true;
+        });
+    }
 });
 </script>
+
+<!-- ══════════ DELETE ACCOUNT MODAL ══════════ -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow">
+
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>Delete Account
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body px-4 pb-0">
+        <div class="alert border-0 rounded-3 mb-3"
+             style="background:#fff0f0;border-left:4px solid #dc3545 !important;">
+          <p class="mb-1 fw-semibold text-danger small">⚠️ This action is permanent and cannot be undone.</p>
+          <p class="mb-0 small text-muted">The following will be deleted forever:</p>
+        </div>
+
+        <ul class="small text-muted mb-4" style="padding-left:18px;line-height:2;">
+          <li>Your account & login credentials</li>
+          <li>All messages & message history</li>
+          <li>All contacts</li>
+          <li>All auto-reply rules</li>
+          <li>All products & images</li>
+          <li>All broadcasts</li>
+          <li>Business hours & message templates</li>
+          <li>Payment history</li>
+        </ul>
+
+        <form method="POST" action="{% url 'delete_account' %}" id="deleteForm">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">
+              Type <strong class="text-danger">DELETE</strong> to confirm
+            </label>
+            <input type="text"
+                   id="confirmText"
+                   name="confirm_text"
+                   class="form-control"
+                   placeholder="Type DELETE here"
+                   autocomplete="off">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">Enter your password</label>
+            <input type="password"
+                   id="deletePassword"
+                   name="password"
+                   class="form-control"
+                   placeholder="Your current password">
+          </div>
+
+          <div class="d-grid mb-3">
+            <button type="submit"
+                    id="confirmDeleteBtn"
+                    class="btn btn-danger fw-semibold rounded-3"
+                    disabled
+                    style="opacity:0.5;padding:12px;">
+              <i class="fas fa-trash me-2"></i> Permanently Delete My Account
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DANGER ZONE CARD (add inside your row, below the right column) ══════════ -->
+<style>
+  .danger-card {
+    border: 2px solid #fee2e2 !important;
+    border-radius: 20px;
+    box-shadow: 0 2px 20px rgba(220,53,69,0.06);
+    margin-top: 8px;
+    overflow: hidden;
+    background: white;
+  }
+  .danger-header {
+    background: #fff0f0;
+    padding: 16px 24px;
+    border-bottom: 1px solid #fee2e2;
+  }
+</style>
+
+<div class="row g-4 mt-0">
+  <div class="col-12">
+    <div class="danger-card">
+      <div class="danger-header d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="fw-bold text-danger mb-1">
+            <i class="fas fa-exclamation-triangle me-2"></i> Danger Zone
+          </h6>
+          <p class="text-muted small mb-0">
+            Irreversible actions — please read carefully before proceeding.
+          </p>
+        </div>
+      </div>
+      <div class="p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <p class="fw-semibold mb-1">Delete this account</p>
+          <p class="text-muted small mb-0">
+            Permanently removes your account, all messages, contacts, products,
+            rules, and payment history. This cannot be undone.
+          </p>
+        </div>
+        <button class="btn btn-outline-danger fw-semibold rounded-3 px-4"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal">
+          <i class="fas fa-trash me-2"></i> Delete Account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

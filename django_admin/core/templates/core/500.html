@@ -1,0 +1,179 @@
+{% extends 'core/basepage.html' %}
+{% block title %}500 — Server Error | BotMart{% endblock %}
+
+{% block extra_css %}
+<style>
+  .error-wrap {
+    min-height: calc(100vh - 66px);
+    margin-top: 66px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 60px 5%;
+  }
+  .error-wrap__grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(217,119,6,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(217,119,6,0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .error-wrap__glow {
+    position: absolute; top: -140px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 500px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(217,119,6,0.2) 0%, transparent 68%);
+  }
+  .error-box {
+    position: relative; z-index: 1;
+    text-align: center; max-width: 560px; width: 100%;
+  }
+  .error-code {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(7rem, 20vw, 13rem);
+    font-weight: 800; line-height: 1;
+    letter-spacing: -0.05em;
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 60%, rgba(217,119,6,0.4) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .error-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #fbbf24;
+    margin-bottom: 20px; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .error-eyebrow-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #fbbf24;
+    animation: pulseDot 2s infinite;
+  }
+  .error-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800; color: white;
+    letter-spacing: -0.03em; margin-bottom: 14px;
+    animation: fadeUp 0.6s 0.15s ease both;
+  }
+  .error-sub {
+    font-size: var(--text-md); color: rgba(255,255,255,0.45);
+    font-weight: 300; line-height: 1.75;
+    margin-bottom: 40px; max-width: 420px; margin-left: auto; margin-right: auto;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .error-actions {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.25s ease both;
+  }
+  .btn-amber {
+    background: #d97706; border-color: #d97706; color: white;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 13px 30px; border-radius: var(--r-md);
+    font-family: 'DM Sans', sans-serif; font-size: var(--text-base);
+    font-weight: 500; text-decoration: none; cursor: pointer;
+    transition: all var(--ease); border: 1.5px solid transparent;
+  }
+  .btn-amber:hover { background: #b45309; transform: translateY(-1px); }
+
+  .status-card {
+    margin-top: 44px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--r-lg); padding: 24px 28px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .status-card__title {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.28); margin-bottom: 16px;
+  }
+  .status-rows { display: flex; flex-direction: column; gap: 10px; }
+  .status-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: var(--text-sm);
+  }
+  .status-row__label { color: rgba(255,255,255,0.4); font-weight: 300; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 100px;
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
+  }
+  .status-pill--green { background: rgba(37,211,102,0.1); color: var(--green-bright); }
+  .status-pill--amber { background: rgba(251,191,36,0.1); color: #fbbf24; }
+  .status-pill__dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  @media (max-width: 600px) {
+    .error-actions { flex-direction: column; align-items: center; }
+    .error-actions .btn,
+    .error-actions .btn-amber { width: 100%; max-width: 280px; justify-content: center; }
+    .status-card { padding: 18px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-wrap">
+  <div class="error-wrap__grid"></div>
+  <div class="error-wrap__glow"></div>
+
+  <div class="error-box">
+    <div class="error-code">500</div>
+
+    <div class="error-eyebrow">
+      <span class="error-eyebrow-dot"></span>
+      Internal Server Error
+    </div>
+
+    <h1 class="error-title">Something went wrong on our end</h1>
+    <p class="error-sub">
+      Our team has been notified and is working on a fix.
+      Your account and data are completely safe. Please try again in a few minutes.
+    </p>
+
+    <div class="error-actions">
+      <a href="javascript:location.reload()" class="btn-amber">
+        ↻ Try Again
+      </a>
+      <a href="/" class="btn btn-outline-white btn-lg">← Back to Home</a>
+    </div>
+
+    <!-- Status card -->
+    <div class="status-card">
+      <p class="status-card__title">Service Status</p>
+      <div class="status-rows">
+        <div class="status-row">
+          <span class="status-row__label">WhatsApp Bot</span>
+          <span class="status-pill status-pill--green">
+            <span class="status-pill__dot"></span> Operational
+          </span>
+        </div>
+        <div class="status-row">
+          <span class="status-row__label">Dashboard</span>
+          <span class="status-pill status-pill--amber">
+            <span class="status-pill__dot"></span> Degraded
+          </span>
+        </div>
+        <div class="status-row">
+          <span class="status-row__label">Payments</span>
+          <span class="status-pill status-pill--green">
+            <span class="status-pill__dot"></span> Operational
+          </span>
+        </div>
+        <div class="status-row">
+          <span class="status-row__label">Need help?</span>
+          <a href="mailto:support@botmart.ng" style="color:#fbbf24;font-size:0.82rem;text-decoration:none;">
+            support@botmart.ng →
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

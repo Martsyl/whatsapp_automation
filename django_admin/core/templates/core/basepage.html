@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block seo %}
+  <meta name="description" content="BotMart — WhatsApp Business automation for Nigerian businesses. Auto-reply customers, showcase products, AI smart replies 24/7.">
+  <meta name="robots" content="index, follow">
+  {% endblock %}
+  <title>{% block title %}BotMart — WhatsApp Automation{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Single shared stylesheet — all design tokens, nav, footer, utilities -->
+  <link rel="stylesheet" href="{% static 'core/css/botmart.css' %}">
+<link rel="icon" type="image/x-icon" href="{% static 'core/img/favicon.ico' %}">
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'core/img/favicon.ico' %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/img/apple-touch-icon.png' %}">
+<meta name="theme-color" content="#075e54">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       NAV — defined once here, never again
+       ══════════════════════════════════════ -->
+  <nav class="bm-nav" id="bm-nav">
+    <a href="/" class="bm-nav__logo">
+      <div class="bm-nav__logo-mark">🤖</div>
+      <span class="bm-nav__logo-name">Bot<em>Mart</em></span>
+    </a>
+
+    <ul class="bm-nav__links">
+      <li><a href="/#features">Features</a></li>
+      <li><a href="/#how">How it works</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><a href="/#testimonials">Reviews</a></li>
+      <li><a href="/support/">Contact</a></li>
+    </ul>
+
+    <div class="bm-nav__actions">
+      <a href="/login/" class="btn btn-ghost">Log in</a>
+      <a href="/register/" class="btn btn-primary">Get started →</a>
+      <!-- Hamburger — visible on mobile only -->
+      <button class="bm-nav__burger" id="bm-burger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile drawer -->
+  <div class="bm-mobile-nav" id="bm-mobile-nav">
+    <div class="bm-mobile-nav__inner">
+      <div class="bm-mobile-nav__head">
+        <a href="/" class="bm-nav__logo" style="text-decoration:none;">
+          <div class="bm-nav__logo-mark">🤖</div>
+          <span class="bm-nav__logo-name">Bot<em>Mart</em></span>
+        </a>
+        <button class="bm-mobile-nav__close" id="bm-close" aria-label="Close menu">✕</button>
+      </div>
+      <ul class="bm-mobile-nav__links">
+        <li><a href="/#features">Features</a></li>
+        <li><a href="/#how">How it works</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/#testimonials">Reviews</a></li>
+        <li><a href="/support/">Contact</a></li>
+      </ul>
+      <div class="bm-mobile-nav__actions">
+        <a href="/login/"    class="btn btn-ghost"   style="justify-content:center;">Log in</a>
+        <a href="/register/" class="btn btn-primary" style="justify-content:center;">Get started →</a>
+      </div>
+    </div>
+  </div>
+  <div class="bm-mobile-overlay" id="bm-overlay"></div>
+
+  <!-- ══════════════════
+       PAGE CONTENT
+       ══════════════════ -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ══════════════════════════════════════
+       FOOTER — defined once here, never again
+       ══════════════════════════════════════ -->
+  <footer class="bm-footer">
+    <div class="bm-footer__top">
+
+      <div class="bm-footer__brand">
+        <a href="/" class="bm-nav__logo" style="text-decoration:none;">
+          <div class="bm-nav__logo-mark">🤖</div>
+          <span class="bm-nav__logo-name" style="color:white;">Bot<em>Mart</em></span>
+        </a>
+        <p class="bm-footer__brand-desc">WhatsApp automation for every Nigerian business. Built to help you grow, sell more, and serve customers better.</p>
+      </div>
+
+      <div class="bm-footer__col">
+        <h6>Product</h6>
+        <ul>
+          <li><a href="/#features">Features</a></li>
+          <li><a href="/#pricing">Pricing</a></li>
+          <li><a href="/#how">How it works</a></li>
+          <li><a href="#">Changelog</a></li>
+        </ul>
+      </div>
+
+      <div class="bm-footer__col">
+        <h6>Company</h6>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="/support/">Contact</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+
+      <div class="bm-footer__col">
+        <h6>Legal</h6>
+        <ul>
+          <li><a href="/privacy/">Privacy Policy</a></li>
+          <li><a href="/terms/">Terms of Service</a></li>
+          <li><a href="/cookie/">Cookie Policy</a></li>
+          <li><a href="/refund/">Refund Policy</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="bm-footer__bottom">
+      <span>© 2026 BotMart.ng — All rights reserved.</span>
+      <div class="bm-footer__bottom-links">
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/support/">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════
+       SHARED JS
+       ══════════════════ -->
+  <script>
+    /* Nav shadow on scroll */
+    const nav = document.getElementById('bm-nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    /* Hamburger menu */
+    const burger  = document.getElementById('bm-burger');
+    const mobileNav = document.getElementById('bm-mobile-nav');
+    const overlay = document.getElementById('bm-overlay');
+
+    function openMenu() {
+      mobileNav.classList.add('open');
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMenu() {
+      mobileNav.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    burger.addEventListener('click', openMenu);
+    document.getElementById('bm-close').addEventListener('click', closeMenu);
+    overlay.addEventListener('click', closeMenu);
+    /* Close on link tap */
+    document.querySelectorAll('.bm-mobile-nav__links a').forEach(a => {
+      a.addEventListener('click', closeMenu);
+    });
+
+    /* Scroll-reveal utility */
+    const revealEls = document.querySelectorAll('.reveal');
+    if (revealEls.length) {
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+      }, { threshold: 0.12 });
+      revealEls.forEach(el => io.observe(el));
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+
+</body>
+</html>

@@ -28,7 +28,7 @@ class Client(models.Model):
     reminder_3_sent = models.BooleanField(default=False)
     ai_replies_used = models.IntegerField(default=0)
     ai_replies_reset_date = models.DateField(null=True, blank=True)
-    
+    business_description = models.TextField(blank=True, null=True)
     class Meta:
         db_table = 'clients'  # reuse existing table
 
@@ -183,7 +183,9 @@ class SubscriptionPlan(models.Model):
     is_active    = models.BooleanField(default=True)
     created_at   = models.DateTimeField(auto_now_add=True)
     updated_at   = models.DateTimeField(auto_now=True)
-
+    discount_3_months  = models.IntegerField(default=10)
+    discount_6_months  = models.IntegerField(default=15)
+    discount_12_months = models.IntegerField(default=20)
     def save(self, *args, **kwargs):
         # Auto-convert naira to kobo on save
         self.price_kobo = self.price_naira * 100
@@ -277,3 +279,63 @@ class CampaignLog(models.Model):
 
     def __str__(self):
         return f"{self.campaign.subject} → {self.email} [{self.status}]"
+
+class PaymentLog(models.Model):
+    PLAN_CHOICES = [
+        ('starter', 'Starter'),
+        ('growth',  'Growth'),
+        ('pro',     'Pro'),
+    ]
+
+    client            = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')
+    reference         = models.CharField(max_length=100, unique=True)
+    amount_kobo       = models.IntegerField()
+    plan              = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    months            = models.IntegerField(default=1)
+    is_renewal        = models.BooleanField(default=False)
+    subscription_start = models.DateField(null=True, blank=True)
+    subscription_end  = models.DateField(null=True, blank=True)
+    paid_at           = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'payment_logs'
+        ordering = ['-paid_at']
+
+    def __str__(self):
+        return f"{self.client.business_name} — ₦{self.amount_naira:,} ({self.plan})"
+
+    @property
+    def amount_naira(self):
+        return self.amount_kobo // 100
+
+# ── Paste this at the bottom of core/models.py ──
+
+class ErrorLog(models.Model):
+    LEVEL_CHOICES = [
+        ('error',    'Error'),
+        ('warning',  'Warning'),
+        ('critical', 'Critical'),
+    ]
+
+    level         = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='error')
+    path          = models.CharField(max_length=500, blank=True)   # URL that triggered it
+    method        = models.CharField(max_length=10, blank=True)    # GET / POST
+    client        = models.ForeignKey(
+                        'Client', on_delete=models.SET_NULL,
+                        null=True, blank=True, related_name='error_logs'
+                    )
+    client_email  = models.EmailField(blank=True)                  # snapshot in case client deleted
+    exception_type = models.CharField(max_length=255, blank=True)
+    message       = models.TextField(blank=True)
+    traceback     = models.TextField(blank=True)
+    user_agent    = models.TextField(blank=True)
+    occurred_at   = models.DateTimeField(auto_now_add=True)
+    resolved      = models.BooleanField(default=False)
+    notes         = models.TextField(blank=True)                   # admin can add notes
+
+    class Meta:
+        db_table = 'error_logs'
+        ordering = ['-occurred_at']
+
+    def __str__(self):
+        return f"[{self.level.upper()}] {self.exception_type} — {self.occurred_at:%d %b %Y %H:%M}"

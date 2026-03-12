@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from dotenv import load_dotenv
-
+from datetime import date
 load_dotenv()
 
 
@@ -570,3 +570,393 @@ def send_activation_email(to_email, business_name):
     if result:
         print(f"✅ Activation email sent to {to_email}")
     return result
+
+
+
+
+# ─────────────────────────────────────────────
+# Add these two functions to your email_helper.py
+# ─────────────────────────────────────────────
+
+def send_new_client_notification(client_email, business_name, plan, months, amount_naira, admin_url):
+    """
+    Notifies the BotMart owner when a new client registers and pays.
+    Triggered from paystack_webhook after first payment.
+    """
+    admin_email = os.getenv('ADMIN_NOTIFY_EMAIL')
+    if not admin_email:
+        print("[email] ADMIN_NOTIFY_EMAIL not set — skipping admin notification")
+        return
+
+    today       = date.today().strftime("%d %b %Y")
+    plan_colors = {'starter': '#6b7280', 'growth': '#2563eb', 'pro': '#7c3aed'}
+    plan_color  = plan_colors.get(plan, '#6b7280')
+    duration    = {1: '1 Month', 3: '3 Months', 6: '6 Months', 12: '12 Months'}.get(months, f'{months} Months')
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d1117;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:0 0 28px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <span style="font-size:22px;font-weight:800;color:white;letter-spacing:-0.03em;">
+                      🤖 Bot<span style="color:#25D366;">Mart</span>
+                    </span>
+                  </td>
+                  <td align="right">
+                    <span style="background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.25);
+                      color:#25D366;padding:4px 12px;border-radius:100px;font-size:11px;
+                      font-family:monospace;letter-spacing:0.1em;">NEW CLIENT</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main card -->
+          <tr>
+            <td style="background:#161b22;border:1px solid rgba(255,255,255,0.07);
+              border-radius:16px;overflow:hidden;">
+
+              <!-- Green top bar -->
+              <tr>
+                <td style="background:linear-gradient(90deg,#075e54,#25D366);height:4px;display:block;line-height:4px;font-size:4px;">&nbsp;</td>
+              </tr>
+
+              <!-- Content -->
+              <tr>
+                <td style="padding:32px;">
+
+                  <!-- Icon + title -->
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                    <tr>
+                      <td style="width:56px;vertical-align:middle;">
+                        <div style="width:52px;height:52px;background:rgba(37,211,102,0.1);
+                          border:1px solid rgba(37,211,102,0.2);border-radius:14px;
+                          text-align:center;line-height:52px;font-size:24px;">🎉</div>
+                      </td>
+                      <td style="padding-left:16px;vertical-align:middle;">
+                        <div style="font-size:11px;font-family:monospace;letter-spacing:0.12em;
+                          text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:4px;">
+                          New Registration — {today}
+                        </div>
+                        <div style="font-size:20px;font-weight:700;color:white;letter-spacing:-0.02em;">
+                          A new client just signed up!
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Client details -->
+                  <table width="100%" cellpadding="0" cellspacing="0"
+                    style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+                    border-radius:12px;margin-bottom:24px;">
+                    <tr>
+                      <td style="padding:20px 22px;">
+                        <table width="100%" cellpadding="0" cellspacing="0">
+
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Business</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:white;font-size:14px;font-weight:600;">{business_name}</span>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Email</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:#25D366;font-size:14px;">{client_email}</span>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Plan</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="background:{plan_color};color:white;padding:2px 10px;
+                                border-radius:100px;font-size:12px;font-weight:600;">
+                                {plan.title()}
+                              </span>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Duration</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:white;font-size:14px;">{duration}</span>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <td style="padding:8px 0;">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Amount Paid</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;">
+                              <span style="color:#25D366;font-size:18px;font-weight:700;">
+                                ₦{amount_naira:,}
+                              </span>
+                            </td>
+                          </tr>
+
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Action note -->
+                  <table width="100%" cellpadding="0" cellspacing="0"
+                    style="background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);
+                    border-left:3px solid #fbbf24;border-radius:0 10px 10px 0;margin-bottom:28px;">
+                    <tr>
+                      <td style="padding:14px 16px;">
+                        <span style="font-size:13px;color:#fbbf24;font-weight:600;">⚡ Action required</span><br>
+                        <span style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.6;">
+                          This client is awaiting your activation. Log into the admin panel
+                          to review and activate their account so they can go live.
+                        </span>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- CTA button -->
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td align="center">
+                        <a href="{admin_url}" style="display:inline-block;background:#075e54;
+                          color:white;text-decoration:none;padding:14px 36px;border-radius:10px;
+                          font-size:15px;font-weight:600;letter-spacing:-0.01em;">
+                          Activate Client in Admin →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+
+                </td>
+              </tr>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 0 0 0;text-align:center;">
+              <span style="font-size:12px;color:rgba(255,255,255,0.2);">
+                BotMart Admin Notification · You're receiving this because you're the account owner
+              </span>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"🎉 New Client: {business_name} — {plan.title()} Plan ({duration})"
+        msg['From']    = f"BotMart <{os.getenv('EMAIL_HOST_USER')}>"
+        msg['To']      = admin_email
+        msg.attach(MIMEText(html, 'html'))
+
+        with smtplib.SMTP(os.getenv('EMAIL_HOST', 'smtp.gmail.com'),
+                          int(os.getenv('EMAIL_PORT', 587))) as server:
+            server.starttls()
+            server.login(os.getenv('EMAIL_HOST_USER'), os.getenv('EMAIL_HOST_PASSWORD'))
+            server.sendmail(os.getenv('EMAIL_HOST_USER'), admin_email, msg.as_string())
+
+        print(f"[email] Admin notified of new client: {business_name}")
+
+    except Exception as e:
+        print(f"[email] Admin notification failed: {e}")
+        # Never raise — don't let email failure break the payment flow
+
+
+def send_renewal_notification(client_email, business_name, plan, months, amount_naira):
+    """
+    Notifies the BotMart owner when an existing client renews.
+    Triggered from paystack_webhook / renew_verify for renewals.
+    """
+    admin_email = os.getenv('ADMIN_NOTIFY_EMAIL')
+    if not admin_email:
+        return
+
+    today    = date.today().strftime("%d %b %Y")
+    duration = {1: '1 Month', 3: '3 Months', 6: '6 Months', 12: '12 Months'}.get(months, f'{months} Months')
+    plan_colors = {'starter': '#6b7280', 'growth': '#2563eb', 'pro': '#7c3aed'}
+    plan_color  = plan_colors.get(plan, '#6b7280')
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d1117;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
+
+          <tr>
+            <td style="padding:0 0 28px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <span style="font-size:22px;font-weight:800;color:white;letter-spacing:-0.03em;">
+                      🤖 Bot<span style="color:#25D366;">Mart</span>
+                    </span>
+                  </td>
+                  <td align="right">
+                    <span style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);
+                      color:#38bdf8;padding:4px 12px;border-radius:100px;font-size:11px;
+                      font-family:monospace;letter-spacing:0.1em;">RENEWAL</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background:#161b22;border:1px solid rgba(255,255,255,0.07);
+              border-radius:16px;overflow:hidden;">
+              <tr>
+                <td style="background:linear-gradient(90deg,#0284c7,#38bdf8);height:4px;
+                  display:block;line-height:4px;font-size:4px;">&nbsp;</td>
+              </tr>
+              <tr>
+                <td style="padding:32px;">
+
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                    <tr>
+                      <td style="width:56px;vertical-align:middle;">
+                        <div style="width:52px;height:52px;background:rgba(56,189,248,0.1);
+                          border:1px solid rgba(56,189,248,0.2);border-radius:14px;
+                          text-align:center;line-height:52px;font-size:24px;">🔄</div>
+                      </td>
+                      <td style="padding-left:16px;vertical-align:middle;">
+                        <div style="font-size:11px;font-family:monospace;letter-spacing:0.12em;
+                          text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:4px;">
+                          Subscription Renewed — {today}
+                        </div>
+                        <div style="font-size:20px;font-weight:700;color:white;letter-spacing:-0.02em;">
+                          {business_name} just renewed!
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <table width="100%" cellpadding="0" cellspacing="0"
+                    style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+                    border-radius:12px;margin-bottom:24px;">
+                    <tr>
+                      <td style="padding:20px 22px;">
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Business</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:white;font-size:14px;font-weight:600;">{business_name}</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Email</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:#38bdf8;font-size:14px;">{client_email}</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Plan</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="background:{plan_color};color:white;padding:2px 10px;
+                                border-radius:100px;font-size:12px;font-weight:600;">{plan.title()}</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Duration</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                              <span style="color:white;font-size:14px;">{duration}</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding:8px 0;">
+                              <span style="color:rgba(255,255,255,0.35);font-size:12px;">Amount Paid</span>
+                            </td>
+                            <td align="right" style="padding:8px 0;">
+                              <span style="color:#38bdf8;font-size:18px;font-weight:700;">₦{amount_naira:,}</span>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.35);
+                    background:rgba(255,255,255,0.03);border-radius:10px;padding:14px;">
+                    No action required — their subscription has been automatically extended.
+                  </div>
+
+                </td>
+              </tr>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 0 0 0;text-align:center;">
+              <span style="font-size:12px;color:rgba(255,255,255,0.2);">
+                BotMart Admin Notification · You're receiving this because you're the account owner
+              </span>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"🔄 Renewal: {business_name} — {plan.title()} Plan ₦{amount_naira:,}"
+        msg['From']    = f"BotMart <{os.getenv('EMAIL_HOST_USER')}>"
+        msg['To']      = admin_email
+        msg.attach(MIMEText(html, 'html'))
+
+        with smtplib.SMTP(os.getenv('EMAIL_HOST', 'smtp.gmail.com'),
+                          int(os.getenv('EMAIL_PORT', 587))) as server:
+            server.starttls()
+            server.login(os.getenv('EMAIL_HOST_USER'), os.getenv('EMAIL_HOST_PASSWORD'))
+            server.sendmail(os.getenv('EMAIL_HOST_USER'), admin_email, msg.as_string())
+
+        print(f"[email] Admin notified of renewal: {business_name}")
+
+    except Exception as e:
+        print(f"[email] Renewal notification failed: {e}")

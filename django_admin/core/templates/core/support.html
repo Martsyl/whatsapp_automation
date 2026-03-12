@@ -1,0 +1,405 @@
+{% extends 'core/basepage.html' %}
+{% block title %}Contact Us — BotMart{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Contact-page-specific layout only — all design tokens come from botmart.css */
+  .ct-layout {
+    max-width: 1100px; margin: 0 auto;
+    padding: 64px 5% 88px;
+    display: grid; grid-template-columns: 1fr 400px;
+    gap: 56px; align-items: start;
+  }
+
+  /* Form */
+  .ct-form-label {
+    display: inline-block; font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--green-deep);
+    background: var(--green-pale); padding: 4px 12px;
+    border-radius: 100px; margin-bottom: 12px;
+  }
+  .ct-form-title {
+    font-family: 'Syne', sans-serif; font-size: clamp(1.5rem,2.5vw,2rem);
+    font-weight: 800; color: var(--ink); margin-bottom: 8px;
+  }
+  .ct-form-sub { font-size: var(--text-md); color: var(--grey-mid); font-weight: 300; line-height: 1.7; margin-bottom: 28px; }
+
+  .ct-form { display: flex; flex-direction: column; gap: 18px; }
+  .ct-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ct-field { display: flex; flex-direction: column; gap: 7px; }
+  .ct-field label { font-size: var(--text-sm); font-weight: 500; color: var(--grey-dark); }
+  .ct-field label .req { color: #ef4444; margin-left: 2px; }
+
+  .ct-subject-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .ct-subject-tag {
+    padding: 6px 14px; border-radius: 100px;
+    border: 1.5px solid var(--grey-line); background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+    font-weight: 500; color: var(--grey-dark); cursor: pointer;
+    transition: all var(--ease);
+  }
+  .ct-subject-tag:hover { border-color: var(--green-mid); color: var(--green-deep); background: var(--green-pale); }
+  .ct-subject-tag.active { border-color: var(--green-deep); color: var(--green-deep); background: var(--green-pale); }
+
+  .ct-textarea { resize: vertical; min-height: 140px; line-height: 1.65; }
+
+  .ct-submit {
+    width: 100%; padding: 14px; background: var(--green-deep); border: none;
+    border-radius: 10px; color: white; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    box-shadow: var(--shadow-green); transition: all var(--ease);
+  }
+  .ct-submit:hover { background: var(--green-mid); transform: translateY(-2px); }
+  .ct-submit:active { transform: translateY(0); }
+  .ct-submit .arrow { transition: transform var(--ease); }
+  .ct-submit:hover .arrow { transform: translateX(4px); }
+
+  .ct-success {
+    display: none; text-align: center; padding: 44px 28px;
+    background: var(--green-pale); border: 1.5px solid rgba(7,94,84,0.15);
+    border-radius: var(--r-xl);
+  }
+  .ct-success.show { display: block; animation: fadeUp 0.5s ease both; }
+  .ct-success-icon { font-size: 2.8rem; margin-bottom: 14px; display: block; }
+  .ct-success h3 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+  .ct-success p { font-size: var(--text-md); color: var(--grey-mid); font-weight: 300; line-height: 1.7; }
+
+  /* Info sidebar */
+  .ct-info { display: flex; flex-direction: column; gap: 16px; }
+
+  .ct-contact-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px; background: var(--white);
+    border: 1.5px solid var(--grey-line); border-radius: var(--r-lg);
+    text-decoration: none; transition: all var(--ease);
+  }
+  .ct-contact-item:hover {
+    border-color: var(--green-bright); background: var(--green-pale);
+    transform: translateX(4px); box-shadow: var(--shadow-md);
+  }
+  .ct-ci-icon {
+    width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 19px;
+  }
+  .ci-green { background: var(--green-pale); }
+  .ci-blue  { background: #eff6ff; }
+  .ci-amber { background: #fffbeb; }
+  .ct-ci-label { font-family: 'DM Mono', monospace; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-mid); margin-bottom: 2px; }
+  .ct-ci-value { font-size: var(--text-sm); font-weight: 600; color: var(--ink); }
+  .ct-ci-sub   { font-size: 0.74rem; color: var(--grey-mid); font-weight: 300; margin-top: 1px; }
+  .ct-ci-arrow { margin-left: auto; color: var(--grey-soft); font-size: 12px; transition: transform var(--ease); }
+  .ct-contact-item:hover .ct-ci-arrow { transform: translateX(3px); color: var(--green-deep); }
+
+  .ct-response-card {
+    background: var(--ink); border-radius: var(--r-lg);
+    padding: 22px; position: relative; overflow: hidden;
+  }
+  .ct-response-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--green-deep), var(--green-bright));
+  }
+  .ct-response-title { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; color: white; margin-bottom: 14px; }
+  .ct-response-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 11px; border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.05); margin-bottom: 8px;
+  }
+  .ct-response-row:last-child { margin-bottom: 0; }
+  .ct-response-type { font-size: var(--text-sm); color: rgba(255,255,255,0.55); font-weight: 300; }
+  .ct-response-time {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--green-bright); background: rgba(37,211,102,0.1);
+    border-radius: 100px; padding: 3px 10px;
+  }
+
+  .ct-faq-card {
+    background: var(--grey-light); border: 1.5px solid var(--grey-line);
+    border-radius: var(--r-lg); padding: 22px;
+  }
+  .ct-faq-title { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+  .ct-faq-item {
+    display: flex; align-items: flex-start; gap: 9px;
+    font-size: var(--text-sm); color: var(--grey-dark);
+    line-height: 1.55; font-weight: 300; margin-bottom: 8px;
+  }
+  .ct-faq-item:last-child { margin-bottom: 0; }
+  .ct-faq-q {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem;
+    color: var(--green-bright); background: var(--green-pale);
+    border-radius: 4px; padding: 2px 6px; flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* Bottom strip */
+  .ct-strip {
+    background: var(--grey-light); border-top: 1px solid var(--grey-line); padding: 44px 5%;
+  }
+  .ct-strip-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+  }
+  .ct-tile {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 18px 20px; background: white;
+    border: 1px solid var(--grey-line); border-radius: var(--r-lg);
+    transition: all var(--ease);
+  }
+  .ct-tile:hover { border-color: rgba(7,94,84,0.2); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .ct-tile-ico {
+    width: 40px; height: 40px; flex-shrink: 0; background: var(--green-pale);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .ct-tile-title { font-size: var(--text-sm); font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .ct-tile-desc  { font-size: 0.78rem; color: var(--grey-mid); font-weight: 300; line-height: 1.6; }
+
+  /* ── RESPONSIVE ── */
+
+  /* Tablet */
+  @media (max-width: 960px) {
+    .ct-layout {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      padding: 48px 4% 64px;
+    }
+    /* Info cards appear above form on tablet */
+    .ct-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    /* Response card and FAQ span full width */
+    .ct-response-card,
+    .ct-faq-card { grid-column: 1 / -1; }
+
+    .ct-strip-inner { grid-template-columns: 1fr 1fr; gap: 14px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .ct-layout { padding: 36px 4% 52px; gap: 32px; }
+    .ct-field-row { grid-template-columns: 1fr; gap: 0; }
+    .ct-info { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+    .ct-strip { padding: 32px 4%; }
+    .ct-strip-inner { grid-template-columns: 1fr; gap: 12px; }
+    .ct-submit { padding: 13px; font-size: 0.9rem; }
+    .ct-subject-tags { gap: 6px; }
+    .ct-subject-tag { font-size: 0.76rem; padding: 5px 12px; }
+    .ct-form-title { font-size: 1.4rem; }
+    .ct-tile { padding: 14px 16px; }
+  }
+
+  /* Small mobile */
+  @media (max-width: 400px) {
+    .ct-contact-item { padding: 13px 14px; gap: 11px; }
+    .ct-ci-icon { width: 36px; height: 36px; font-size: 16px; }
+    .ct-ci-value { font-size: 0.78rem; }
+    .ct-response-card { padding: 18px; }
+    .ct-faq-card { padding: 18px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+  <div class="page-hero__grid"></div>
+  <div class="page-hero__glow-l"></div>
+  <div class="page-hero__glow-r"></div>
+  <div class="page-hero__inner--center">
+    <div class="page-hero__eyebrow anim-fade-up">
+      <span class="page-hero__eyebrow-dot"></span> Get in touch
+    </div>
+    <h1 class="page-hero__title anim-fade-up anim-delay-1">
+      We'd love to<span class="accent">hear from you.</span>
+    </h1>
+    <p class="page-hero__sub anim-fade-up anim-delay-2">Have a question, feedback, or need support? Drop us a message and we'll get back to you promptly.</p>
+    <div class="page-hero__chips anim-fade-up anim-delay-3">
+      <div class="page-hero__chip"><span class="chip-dot"></span> Replies within 24 hours</div>
+      <div class="page-hero__chip"><span class="chip-dot"></span> Nigeria-based support</div>
+      <div class="page-hero__chip"><span class="chip-dot"></span> Mon – Sat, 9am – 6pm</div>
+    </div>
+  </div>
+</div>
+
+<div class="ct-layout">
+
+  <!-- FORM -->
+  <div>
+    <div class="ct-form-label">Send a message</div>
+    <h2 class="ct-form-title">We're here to help</h2>
+    <p class="ct-form-sub">Fill in the form and your message lands directly in our inbox — real humans, no auto-replies.</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="notice notice--green" style="margin-bottom:18px;">
+          <span class="notice__icon">✅</span> {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form class="ct-form" id="contactForm" method="POST" action="/support/" novalidate>
+      {% csrf_token %}
+
+      <div class="ct-field-row">
+        <div class="ct-field">
+          <label for="fname">First name <span class="req">*</span></label>
+          <input class="field-input" type="text" id="fname" name="first_name" placeholder="John" required>
+        </div>
+        <div class="ct-field">
+          <label for="lname">Last name <span class="req">*</span></label>
+          <input class="field-input" type="text" id="lname" name="last_name" placeholder="Doe" required>
+        </div>
+      </div>
+
+      <div class="ct-field">
+        <label for="email">Email address <span class="req">*</span></label>
+        <input class="field-input" type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
+
+      <div class="ct-field">
+        <label for="phone">WhatsApp / phone number</label>
+        <input class="field-input" type="tel" id="phone" name="phone" placeholder="+234 800 000 0000">
+      </div>
+
+      <div class="ct-field">
+        <label>Subject <span class="req">*</span></label>
+        <div class="ct-subject-tags">
+          <button type="button" class="ct-subject-tag" onclick="selectSubject(this)">General Enquiry</button>
+          <button type="button" class="ct-subject-tag" onclick="selectSubject(this)">Technical Support</button>
+          <button type="button" class="ct-subject-tag" onclick="selectSubject(this)">Billing &amp; Payments</button>
+          <button type="button" class="ct-subject-tag" onclick="selectSubject(this)">Feature Request</button>
+          <button type="button" class="ct-subject-tag" onclick="selectSubject(this)">Partnership</button>
+          <button type="button" class="ct-subject-tag" onclick="selectSubject(this)">Other</button>
+        </div>
+        <input type="hidden" id="subjectValue" name="subject">
+      </div>
+
+      <div class="ct-field">
+        <label for="message">Your message <span class="req">*</span></label>
+        <textarea class="field-input ct-textarea" id="message" name="message"
+                  placeholder="Tell us what's on your mind — more detail means a faster, better response." required></textarea>
+      </div>
+
+      <button type="submit" class="ct-submit">
+        <span>Send Message</span><span class="arrow">→</span>
+      </button>
+    </form>
+
+    <div class="ct-success" id="successMsg">
+      <span class="ct-success-icon">✅</span>
+      <h3>Message sent successfully!</h3>
+      <p>Thanks for reaching out. We'll reply to your email address within 24 hours.</p>
+    </div>
+  </div>
+
+  <!-- INFO SIDEBAR -->
+  <aside class="ct-info">
+
+    <a href="mailto:support@botmart.ng" class="ct-contact-item">
+      <div class="ct-ci-icon ci-green">📧</div>
+      <div>
+        <div class="ct-ci-label">Support</div>
+        <div class="ct-ci-value">support@botmart.ng</div>
+        <div class="ct-ci-sub">General enquiries</div>
+      </div>
+      <span class="ct-ci-arrow">→</span>
+    </a>
+
+    <a href="mailto:billing@botmart.ng" class="ct-contact-item">
+      <div class="ct-ci-icon ci-amber">💳</div>
+      <div>
+        <div class="ct-ci-label">Billing</div>
+        <div class="ct-ci-value">billing@botmart.ng</div>
+        <div class="ct-ci-sub">Payments &amp; subscriptions</div>
+      </div>
+      <span class="ct-ci-arrow">→</span>
+    </a>
+
+    <a href="mailto:legal@botmart.ng" class="ct-contact-item">
+      <div class="ct-ci-icon ci-blue">⚖️</div>
+      <div>
+        <div class="ct-ci-label">Legal</div>
+        <div class="ct-ci-value">legal@botmart.ng</div>
+        <div class="ct-ci-sub">Privacy &amp; compliance</div>
+      </div>
+      <span class="ct-ci-arrow">→</span>
+    </a>
+
+    <a href="https://wa.me/2348100000000" class="ct-contact-item" target="_blank" rel="noopener">
+      <div class="ct-ci-icon ci-green">💬</div>
+      <div>
+        <div class="ct-ci-label">WhatsApp</div>
+        <div class="ct-ci-value">Chat with us</div>
+        <div class="ct-ci-sub">Quick questions &amp; live help</div>
+      </div>
+      <span class="ct-ci-arrow">→</span>
+    </a>
+
+    <div class="ct-response-card">
+      <div class="ct-response-title">⏱ Typical response times</div>
+      <div class="ct-response-row"><span class="ct-response-type">General enquiries</span><span class="ct-response-time">within 24h</span></div>
+      <div class="ct-response-row"><span class="ct-response-type">Technical support</span><span class="ct-response-time">within 12h</span></div>
+      <div class="ct-response-row"><span class="ct-response-type">Billing issues</span><span class="ct-response-time">within 6h</span></div>
+      <div class="ct-response-row"><span class="ct-response-type">WhatsApp chat</span><span class="ct-response-time">within 2h</span></div>
+    </div>
+
+    <div class="ct-faq-card">
+      <div class="ct-faq-title">💡 Common questions</div>
+      <div class="ct-faq-item"><span class="ct-faq-q">Q</span> How do I connect my WhatsApp number?</div>
+      <div class="ct-faq-item"><span class="ct-faq-q">Q</span> Can I upgrade or downgrade my plan anytime?</div>
+      <div class="ct-faq-item"><span class="ct-faq-q">Q</span> What happens when my subscription expires?</div>
+      <div class="ct-faq-item"><span class="ct-faq-q">Q</span> Is my customer data secure on BotMart?</div>
+    </div>
+
+  </aside>
+</div>
+
+<div class="ct-strip">
+  <div class="ct-strip-inner">
+    <div class="ct-tile">
+      <div class="ct-tile-ico">🕐</div>
+      <div><div class="ct-tile-title">Business hours</div><div class="ct-tile-desc">Monday to Saturday, 9:00 AM – 6:00 PM WAT. Closed Sundays &amp; public holidays.</div></div>
+    </div>
+    <div class="ct-tile">
+      <div class="ct-tile-ico">🌍</div>
+      <div><div class="ct-tile-title">Based in Nigeria</div><div class="ct-tile-desc">Our team understands the local business landscape inside out.</div></div>
+    </div>
+    <div class="ct-tile">
+      <div class="ct-tile-ico">🔒</div>
+      <div><div class="ct-tile-title">Your data is safe</div><div class="ct-tile-desc">Messages are used only to respond to your enquiry — never shared.</div></div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function selectSubject(el) {
+    document.querySelectorAll('.ct-subject-tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('subjectValue').value = el.textContent.trim();
+  }
+
+  /* Fallback mailto if Django view not set up yet */
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    const fname   = document.getElementById('fname').value.trim();
+    const email   = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+    if (!fname || !email || !message) return;
+
+    /* If action URL doesn't exist, fall back to mailto */
+    if (this.action.includes('contact_submit')) {
+      e.preventDefault();
+      const subject = document.getElementById('subjectValue').value || 'General Enquiry';
+      const body = `Name: ${fname} ${document.getElementById('lname').value}\nEmail: ${email}\nPhone: ${document.getElementById('phone').value}\nSubject: ${subject}\n\nMessage:\n${message}`;
+      window.location.href = `mailto:support@botmart.ng?subject=${encodeURIComponent('[BotMart] ' + subject)}&body=${encodeURIComponent(body)}`;
+      setTimeout(() => {
+        document.getElementById('contactForm').style.display = 'none';
+        document.getElementById('successMsg').classList.add('show');
+      }, 700);
+    }
+  });
+</script>
+{% endblock %}

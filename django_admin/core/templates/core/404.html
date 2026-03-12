@@ -1,0 +1,144 @@
+{% extends 'core/basepage.html' %}
+{% block title %}404 — Page Not Found | BotMart{% endblock %}
+
+{% block extra_css %}
+<style>
+  .error-wrap {
+    min-height: calc(100vh - 66px);
+    margin-top: 66px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 60px 5%;
+  }
+  .error-wrap__grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(37,211,102,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,211,102,0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .error-wrap__glow {
+    position: absolute; top: -140px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 500px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(7,94,84,0.35) 0%, transparent 68%);
+  }
+  .error-box {
+    position: relative; z-index: 1;
+    text-align: center; max-width: 560px; width: 100%;
+  }
+  .error-code {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(7rem, 20vw, 13rem);
+    font-weight: 800; line-height: 1;
+    letter-spacing: -0.05em;
+    background: linear-gradient(135deg, var(--green-bright) 0%, var(--green-mid) 60%, rgba(7,94,84,0.4) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .error-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--green-bright);
+    margin-bottom: 20px; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .error-eyebrow-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-bright); animation: pulseDot 2s infinite;
+  }
+  .error-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800; color: white;
+    letter-spacing: -0.03em; margin-bottom: 14px;
+    animation: fadeUp 0.6s 0.15s ease both;
+  }
+  .error-sub {
+    font-size: var(--text-md); color: rgba(255,255,255,0.45);
+    font-weight: 300; line-height: 1.75;
+    margin-bottom: 40px; max-width: 400px; margin-left: auto; margin-right: auto;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .error-actions {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.25s ease both;
+  }
+  .error-links {
+    margin-top: 48px;
+    display: flex; gap: 0; justify-content: center; flex-wrap: wrap;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--r-lg); overflow: hidden;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .error-link-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 24px; text-decoration: none;
+    color: rgba(255,255,255,0.5); font-size: var(--text-sm); font-weight: 400;
+    transition: all var(--ease);
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .error-link-item:last-child { border-right: none; }
+  .error-link-item:hover {
+    background: rgba(37,211,102,0.07);
+    color: white;
+  }
+  .error-link-item .ico { font-size: 16px; }
+
+  @media (max-width: 600px) {
+    .error-links { flex-direction: column; }
+    .error-link-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .error-link-item:last-child { border-bottom: none; }
+    .error-actions { flex-direction: column; align-items: center; }
+    .error-actions .btn { width: 100%; max-width: 280px; justify-content: center; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-wrap">
+  <div class="error-wrap__grid"></div>
+  <div class="error-wrap__glow"></div>
+
+  <div class="error-box">
+    <div class="error-code">404</div>
+
+    <div class="error-eyebrow">
+      <span class="error-eyebrow-dot"></span>
+      Page Not Found
+    </div>
+
+    <h1 class="error-title">This page doesn't exist</h1>
+    <p class="error-sub">
+      The link you followed may be broken, expired, or the page may have been moved.
+      Don't worry — your account and data are safe.
+    </p>
+
+    <div class="error-actions">
+      <a href="/" class="btn btn-white btn-lg">← Back to Home</a>
+      <a href="/dashboard/" class="btn btn-outline-white btn-lg">Go to Dashboard</a>
+    </div>
+
+    <div class="error-links">
+      <a href="/login/" class="error-link-item">
+        <span class="ico">🔑</span> Log in
+      </a>
+      <a href="/#pricing" class="error-link-item">
+        <span class="ico">💳</span> Pricing
+      </a>
+      <a href="/renew/" class="error-link-item">
+        <span class="ico">🔄</span> Renew
+      </a>
+      <a href="mailto:support@botmart.ng" class="error-link-item">
+        <span class="ico">📬</span> Support
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

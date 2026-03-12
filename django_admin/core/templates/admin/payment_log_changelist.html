@@ -1,0 +1,330 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<style>
+  #content { padding: 16px !important; }
+
+  .pay-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 1100px) { .pay-stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px)  { .pay-stats { grid-template-columns: 1fr; } }
+
+  .pay-stat {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pay-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .pay-stat.green::before  { background: #065f46; }
+  .pay-stat.blue::before   { background: #2563eb; }
+  .pay-stat.purple::before { background: #7c3aed; }
+  .pay-stat.amber::before  { background: #d97706; }
+  .pay-stat-label {
+    font-size: 0.72rem; font-weight: 700; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+  }
+  .pay-stat-value {
+    font-size: 1.6rem; font-weight: 800; color: #111827;
+    line-height: 1; margin-bottom: 4px;
+  }
+  .pay-stat-sub { font-size: 0.78rem; color: #6b7280; }
+  .badge-up   { display:inline-block;padding:2px 7px;border-radius:100px;font-size:0.7rem;font-weight:700;background:#dcfce7;color:#166534; }
+  .badge-down { display:inline-block;padding:2px 7px;border-radius:100px;font-size:0.7rem;font-weight:700;background:#fee2e2;color:#991b1b; }
+  .badge-flat { display:inline-block;padding:2px 7px;border-radius:100px;font-size:0.7rem;font-weight:700;background:#f3f4f6;color:#6b7280; }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+
+  .breakdown-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .breakdown-row { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px 20px;
+    min-width: 0;
+  }
+  .chart-title {
+    font-size: 0.83rem; font-weight: 700; color: #374151;
+    margin-bottom: 14px; padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .plan-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid #f3f4f6;
+    font-size: 0.85rem; gap: 8px;
+  }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    display: inline-block; margin-right: 6px; flex-shrink: 0;
+  }
+  .plan-amount { font-weight: 700; color: #065f46; white-space: nowrap; }
+
+  .recent-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .recent-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.83rem; min-width: 580px;
+  }
+  .recent-table th {
+    text-align: left; padding: 8px 10px;
+    background: #f9fafb; color: #6b7280;
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e7eb; white-space: nowrap;
+  }
+  .recent-table td {
+    padding: 10px 10px; border-bottom: 1px solid #f3f4f6;
+    color: #374151; vertical-align: top;
+  }
+  .recent-table tr:last-child td { border-bottom: none; }
+  .amount-cell { font-weight: 700; color: #065f46; white-space: nowrap; }
+
+  .pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 100px; font-size: 0.7rem;
+    font-weight: 600; white-space: nowrap;
+  }
+  .pill-starter { background:#f3f4f6; color:#374151; }
+  .pill-growth  { background:#dbeafe; color:#1e40af; }
+  .pill-pro     { background:#ede9fe; color:#5b21b6; }
+  .pill-new     { background:#d1fae5; color:#065f46; }
+  .pill-renewal { background:#fef3c7; color:#92400e; }
+  .pill-1mo  { background:#f3f4f6; color:#374151; }
+  .pill-3mo  { background:#dbeafe; color:#1e40af; }
+  .pill-6mo  { background:#dcfce7; color:#166534; }
+  .pill-12mo { background:#fef9c3; color:#854d0e; }
+</style>
+
+<!-- ══ STAT CARDS ══ -->
+<div class="pay-stats">
+  <div class="pay-stat green">
+    <div class="pay-stat-label">Total Revenue</div>
+    <div class="pay-stat-value">₦{{ total_revenue|floatformat:0 }}</div>
+    <div class="pay-stat-sub">{{ total_count }} payment{{ total_count|pluralize }}</div>
+  </div>
+  <div class="pay-stat blue">
+    <div class="pay-stat-label">This Month</div>
+    <div class="pay-stat-value">₦{{ month_revenue|floatformat:0 }}</div>
+    <div class="pay-stat-sub">
+      {{ month_count }} payment{{ month_count|pluralize }} &nbsp;
+      {% if mom_growth > 0 %}<span class="badge-up">↑ {{ mom_growth }}%</span>
+      {% elif mom_growth < 0 %}<span class="badge-down">↓ {{ mom_growth|cut:"-" }}%</span>
+      {% else %}<span class="badge-flat">→ 0%</span>{% endif %}
+      vs last month
+    </div>
+  </div>
+  <div class="pay-stat purple">
+    <div class="pay-stat-label">New Clients</div>
+    <div class="pay-stat-value">{{ new_count }}</div>
+    <div class="pay-stat-sub">First-time payments</div>
+  </div>
+  <div class="pay-stat amber">
+    <div class="pay-stat-label">Renewals</div>
+    <div class="pay-stat-value">{{ renewal_count }}</div>
+    <div class="pay-stat-sub">Returning clients</div>
+  </div>
+</div>
+
+<!-- ══ CHARTS ROW ══ -->
+<div class="charts-row">
+  <div class="chart-card">
+    <div class="chart-title">📈 Monthly Revenue Trend (Last 6 Months)</div>
+    <div style="position:relative;width:100%;height:220px;">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">🥧 Revenue by Plan</div>
+    <div style="position:relative;width:100%;max-width:240px;margin:0 auto;height:170px;">
+      <canvas id="planChart"></canvas>
+    </div>
+    <div style="margin-top:12px;">
+      {% for p in plan_data %}
+      <div class="plan-row">
+        <span>
+          <span class="plan-dot" style="background:
+            {% if p.plan == 'Starter' %}#6b7280
+            {% elif p.plan == 'Growth' %}#2563eb
+            {% else %}#7c3aed{% endif %};"></span>
+          {{ p.plan }} <small style="color:#9ca3af;">({{ p.count }})</small>
+        </span>
+        <span class="plan-amount">₦{{ p.revenue|floatformat:0 }}</span>
+      </div>
+      {% empty %}
+      <p style="color:#9ca3af;text-align:center;padding:16px 0;font-size:0.83rem;">No payments yet</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ══ BREAKDOWN ROW ══ -->
+<div class="breakdown-row">
+  <div class="chart-card">
+    <div class="chart-title">📅 Payments by Duration</div>
+    {% for d in duration_data %}
+    <div class="plan-row">
+      <span>{{ d.label }}</span>
+      <span>
+        <strong>{{ d.count }}</strong> &nbsp;·&nbsp;
+        <span class="plan-amount">₦{{ d.revenue|floatformat:0 }}</span>
+      </span>
+    </div>
+    {% empty %}
+    <p style="color:#9ca3af;text-align:center;padding:16px 0;font-size:0.83rem;">No payments yet</p>
+    {% endfor %}
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">📊 Monthly Payment Count</div>
+    <div style="position:relative;width:100%;height:180px;">
+      <canvas id="countChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RECENT PAYMENTS ══ -->
+<div class="chart-card" style="margin-bottom:24px;">
+  <div class="chart-title">🕐 Recent Payments</div>
+  <div class="recent-wrap">
+    <table class="recent-table">
+      <thead>
+        <tr>
+          <th>Date</th><th>Client</th><th>Plan</th>
+          <th>Duration</th><th>Type</th><th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in recent %}
+        <tr>
+          <td style="white-space:nowrap;">{{ p.paid_at|date:"d M Y, H:i" }}</td>
+          <td>
+            <strong>{{ p.client.business_name }}</strong><br/>
+            <small style="color:#9ca3af;">{{ p.client.email }}</small>
+          </td>
+          <td><span class="pill pill-{{ p.plan }}">{{ p.plan|title }}</span></td>
+          <td>
+            <span class="pill {% if p.months == 1 %}pill-1mo{% elif p.months == 3 %}pill-3mo{% elif p.months == 6 %}pill-6mo{% else %}pill-12mo{% endif %}">
+              {% if p.months == 1 %}1 Month{% elif p.months == 3 %}3 Months{% elif p.months == 6 %}6 Months{% else %}12 Months{% endif %}
+            </span>
+          </td>
+          <td>
+            {% if p.is_renewal %}
+              <span class="pill pill-renewal">🔄 Renewal</span>
+            {% else %}
+              <span class="pill pill-new">✨ New</span>
+            {% endif %}
+          </td>
+          <td class="amount-cell">₦{{ p.amount_naira|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center;color:#9ca3af;padding:24px;font-size:0.83rem;">
+            No payments recorded yet
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{ block.super }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const labels  = {{ trend_labels|safe }};
+  const revenue = {{ trend_revenue|safe }};
+  const counts  = {{ trend_counts|safe }};
+
+  Chart.defaults.font.family = "-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif";
+  Chart.defaults.font.size   = 11;
+
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: revenue,
+        borderColor: '#065f46',
+        backgroundColor: 'rgba(6,95,70,0.07)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#065f46',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.35,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { callback: v => '₦' + v.toLocaleString() } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  const planLabels  = [{% for p in plan_data %}'{{ p.plan }}',{% endfor %}];
+  const planRevenue = [{% for p in plan_data %}{{ p.revenue }},{% endfor %}];
+
+  new Chart(document.getElementById('planChart'), {
+    type: 'doughnut',
+    data: {
+      labels: planLabels,
+      datasets: [{ data: planRevenue, backgroundColor: ['#6b7280','#2563eb','#7c3aed'].slice(0, planLabels.length), borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ' ₦' + ctx.parsed.toLocaleString() } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('countChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: counts, backgroundColor: 'rgba(37,99,235,0.12)', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0 } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+
+{% endblock %}

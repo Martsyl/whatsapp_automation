@@ -3,3 +3,6 @@ venv/
 # Environment variables
 .env
 .env.*
+/logs/*.log
+/errors.log
+/general.log

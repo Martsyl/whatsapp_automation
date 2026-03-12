@@ -29,11 +29,13 @@ class Client(Base):
     waba_id = Column(String, nullable=True)
     subscription_start = Column(Date, nullable=True)
     subscription_end = Column(Date, nullable=True)
+    subscription_months = Column(Integer, default=1)
     grace_period_end = Column(Date, nullable=True)
     reminder_7_sent = Column(Boolean, default=False)
     reminder_3_sent = Column(Boolean, default=False)
     ai_replies_used = Column(Integer, default=0)
     ai_replies_reset_date = Column(Date, nullable=True)
+    business_description = Column(Text, nullable=True)
 class AutoReplyRule(Base):
     __tablename__ = "auto_reply_rules"
 
@@ -141,4 +143,6 @@ class SubscriptionPlan(Base):
     is_active    = Column(Boolean, default=True)
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    discount_3_months  = Column(Integer, default=10)   # 10% off
+    discount_6_months  = Column(Integer, default=15)   # 15% off  
+    discount_12_months = Column(Integer, default=20)   # 20% off

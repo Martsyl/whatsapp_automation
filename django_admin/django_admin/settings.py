@@ -24,17 +24,13 @@ SECRET_KEY = env('SECRET_KEY')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Set DEBUG=True in .env for local, DEBUG=False for staging/production
+DEBUG = env.bool('DEBUG', default=False)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-um_l1f4(svg3_5kjw+^g!&upjf--0*7(m#u!x2&v7r5gd__e(-'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
+    'localhost', '127.0.0.1',
+    '.ngrok-free.app', '.ngrok-free.dev', '.ngrok.io',
+])
 
 
 # Application definition
@@ -56,6 +52,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
+    'core.error_middleware.ErrorTrackingMiddleware',   # must be first to catch all exceptions
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -123,22 +120,19 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
-USE_TZ = True
+USE_TZ = False
+TIME_ZONE = 'Africa/Lagos'
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core/static')]
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
-
-USE_TZ = False
-TIME_ZONE = 'Africa/Lagos'
 
 # ─────────────────────────────────────────────
 # Add to your settings.py
@@ -160,4 +154,96 @@ CELERY_BEAT_SCHEDULE = {
         'task':     'core.tasks.dispatch_scheduled_campaigns',
         'schedule': 60.0,  # every 60 seconds
     },
+}
+
+
+# ── Add to the BOTTOM of settings.py ──
+
+
+
+# ─────────────────────────────────────────────
+# Error tracking — admin alert email
+# ─────────────────────────────────────────────
+ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', '')
+
+# Django's built-in crash emails (separate from our middleware)
+# These fire on 500 errors when DEBUG=False
+ADMINS = [
+    ('BotMart Admin', os.getenv('ADMIN_NOTIFY_EMAIL', '')),
+]
+SERVER_EMAIL        = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_SUBJECT_PREFIX = '[BotMart] '
+
+# ─────────────────────────────────────────────
+# Logging — writes errors to a file on disk
+# so you always have a record even if DB/email fails
+# ─────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+
+    'handlers': {
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
+            'maxBytes': 5 * 1024 * 1024,   # 5 MB per file
+            'backupCount': 5,               # keep last 5 rotated files
+            'formatter': 'verbose',
+        },
+        'general_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'general.log'),
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'simple',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+
+    'loggers': {
+        'django': {
+            'handlers': ['error_file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'core': {                           # your app's own logger
+            'handlers': ['general_file', 'error_file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+# Create logs directory if it doesn't exist
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+# ─────────────────────────────────────────────
+# Cache — used for login rate limiting
+# Redis is already running for Celery so reuse it
+# ─────────────────────────────────────────────
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # DB 1 (Celery uses DB 0)
+    }
 }

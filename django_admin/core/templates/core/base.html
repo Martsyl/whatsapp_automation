@@ -336,6 +336,11 @@
             <i class="fas fa-user"></i> Profile
         </a>
 
+        <a href="{% url 'billing' %}"
+            class="{% if request.resolver_match.url_name == 'billing' %}active{% endif %}">
+            <i class="fas fa-receipt"></i> Billing
+        </a>
+
         <!-- Subscription with warning badge -->
         <a href="{% url 'renew' %}"
             class="{% if request.resolver_match.url_name == 'renew' %}active{% endif %}">

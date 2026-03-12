@@ -25,28 +25,13 @@
     text-decoration: none;
   }
   .logo span { color: #25D366; }
-  .steps-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .step-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #e5e7eb;
-  }
-  .step-dot.active {
-    background: #075e54;
-    width: 24px;
-    border-radius: 4px;
-  }
+  .steps-bar { display: flex; align-items: center; gap: 8px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #e5e7eb; }
+  .step-dot.active { background: #075e54; width: 24px; border-radius: 4px; }
   .step-dot.done { background: #25D366; }
   .step-label { font-size: 0.8rem; color: #9ca3af; margin-left: 8px; }
-  .page-body {
-    max-width: 960px;
-    margin: 48px auto;
-    padding: 0 24px;
-  }
+
+  .page-body { max-width: 980px; margin: 48px auto; padding: 0 24px; }
   .page-title {
     font-family: 'Syne', sans-serif;
     font-size: 1.8rem;
@@ -55,12 +40,56 @@
     text-align: center;
     margin-bottom: 8px;
   }
-  .page-sub {
-    text-align: center;
-    color: #6b7280;
-    font-weight: 300;
-    margin-bottom: 48px;
+  .page-sub { text-align: center; color: #6b7280; font-weight: 300; margin-bottom: 32px; }
+
+  /* ── Duration Tabs ── */
+  .duration-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 36px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 6px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
   }
+  .duration-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .duration-tab:hover { background: #f0fdf4; }
+  .duration-tab.active {
+    background: #075e54;
+    color: white;
+  }
+  .duration-tab .tab-months {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: block;
+    line-height: 1.2;
+  }
+  .duration-tab .tab-save {
+    font-size: 0.68rem;
+    opacity: 0.85;
+    display: block;
+    margin-top: 2px;
+  }
+  .duration-tab.active .tab-save { color: #a7f3d0; }
+  .duration-tab:not(.active) .tab-save { color: #25D366; }
+  .duration-tab:not(.active) .tab-months { color: #374151; }
+
+  /* ── Plan cards ── */
   .plans-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -85,13 +114,10 @@
     border-color: #075e54;
     box-shadow: 0 0 0 3px rgba(7,94,84,0.1);
   }
-  .plan-card.popular {
-    border-color: #075e54;
-  }
+  .plan-card.popular { border-color: #075e54; }
   .popular-tag {
     position: absolute;
-    top: -12px;
-    left: 50%;
+    top: -12px; left: 50%;
     transform: translateX(-50%);
     background: #075e54;
     color: white;
@@ -116,13 +142,24 @@
     font-weight: 800;
     color: #0d1117;
     line-height: 1;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    transition: all 0.2s;
   }
-  .plan-period {
-    font-size: 0.8rem;
+  .plan-price-original {
+    font-size: 0.85rem;
     color: #9ca3af;
-    margin-bottom: 20px;
+    text-decoration: line-through;
+    margin-bottom: 2px;
+    min-height: 20px;
   }
+  .plan-saving {
+    font-size: 0.75rem;
+    color: #059669;
+    font-weight: 600;
+    margin-bottom: 4px;
+    min-height: 18px;
+  }
+  .plan-period { font-size: 0.8rem; color: #9ca3af; margin-bottom: 20px; }
   .plan-features {
     list-style: none;
     padding: 0;
@@ -149,7 +186,6 @@
     color: #075e54;
     flex-shrink: 0;
   }
-  .plan-radio { display: none; }
   .select-indicator {
     width: 20px; height: 20px;
     border-radius: 50%;
@@ -172,6 +208,46 @@
     display: none;
   }
   .plan-card.selected .select-indicator::after { display: block; }
+
+  /* ── Summary box ── */
+  .order-summary {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px 28px;
+    max-width: 480px;
+    margin: 0 auto 24px;
+  }
+  .summary-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+  .summary-row.total {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+    margin-top: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #0d1117;
+  }
+  .summary-saving {
+    color: #059669;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
   .btn-pay {
     background: #075e54;
     border: none;
@@ -182,7 +258,7 @@
     font-size: 1rem;
     font-weight: 500;
     width: 100%;
-    max-width: 400px;
+    max-width: 480px;
     cursor: pointer;
     transition: all 0.2s;
     display: block;
@@ -206,6 +282,7 @@
   }
   @media (max-width: 700px) {
     .plans-grid { grid-template-columns: 1fr; }
+    .duration-tabs { max-width: 100%; }
   }
 </style>
 </head>
@@ -225,10 +302,7 @@
 
 <div class="page-body">
   <h2 class="page-title">Choose your plan</h2>
-  <p class="page-sub">
-    Select the plan that fits your business.
-    You can upgrade anytime.
-  </p>
+  <p class="page-sub">Select the plan and duration that fits your business. Longer plans save more.</p>
 
   {% if error %}
   <div class="alert border-0 rounded-3 mb-4 text-center"
@@ -239,16 +313,42 @@
 
   <form method="POST" id="planForm">
     {% csrf_token %}
-    <input type="hidden" name="plan" id="selectedPlan" value="growth">
+    <input type="hidden" name="plan"   id="selectedPlan"   value="growth">
+    <input type="hidden" name="months" id="selectedMonths" value="1">
 
+    <!-- Duration Tabs -->
+    <div class="duration-tabs">
+      <button type="button" class="duration-tab active" onclick="selectDuration(1, this)">
+        <span class="tab-months">1 Month</span>
+        <span class="tab-save">&nbsp;</span>
+      </button>
+      <button type="button" class="duration-tab" onclick="selectDuration(3, this)">
+        <span class="tab-months">3 Months</span>
+        <span class="tab-save">Save {{ starter.discount_3_months|default:10 }}%</span>
+      </button>
+      <button type="button" class="duration-tab" onclick="selectDuration(6, this)">
+        <span class="tab-months">6 Months</span>
+        <span class="tab-save">Save {{ starter.discount_6_months|default:15 }}%</span>
+      </button>
+      <button type="button" class="duration-tab" onclick="selectDuration(12, this)">
+        <span class="tab-months">12 Months</span>
+        <span class="tab-save">Save {{ starter.discount_12_months|default:20 }}%</span>
+      </button>
+    </div>
+
+    <!-- Plan Cards -->
     <div class="plans-grid">
 
       <!-- Starter -->
       <div class="plan-card" onclick="selectPlan('starter', this)">
         <div class="select-indicator"></div>
         <p class="plan-name">Starter</p>
-        <div class="plan-price">₦8,000</div>
-        <p class="plan-period">per month</p>
+        <div class="plan-price-original" id="starter-original"></div>
+        <div class="plan-price" id="starter-price">
+          ₦{{ starter.price_kobo|default:800000|floatformat:0 | divisibleby:100 }}
+        </div>
+        <div class="plan-saving" id="starter-saving"></div>
+        <p class="plan-period" id="starter-period">per month</p>
         <ul class="plan-features">
           <li><span class="check">✓</span> 1 WhatsApp number</li>
           <li><span class="check">✓</span> Up to 500 contacts</li>
@@ -264,8 +364,12 @@
         <div class="popular-tag">Most Popular</div>
         <div class="select-indicator"></div>
         <p class="plan-name">Growth</p>
-        <div class="plan-price">₦18,000</div>
-        <p class="plan-period">per month</p>
+        <div class="plan-price-original" id="growth-original"></div>
+        <div class="plan-price" id="growth-price">
+          ₦{{ growth.price_kobo|default:1800000|floatformat:0 | divisibleby:100 }}
+        </div>
+        <div class="plan-saving" id="growth-saving"></div>
+        <p class="plan-period" id="growth-period">per month</p>
         <ul class="plan-features">
           <li><span class="check">✓</span> 1 WhatsApp number</li>
           <li><span class="check">✓</span> Unlimited contacts</li>
@@ -282,8 +386,12 @@
       <div class="plan-card" onclick="selectPlan('pro', this)">
         <div class="select-indicator"></div>
         <p class="plan-name">Pro</p>
-        <div class="plan-price">₦35,000</div>
-        <p class="plan-period">per month</p>
+        <div class="plan-price-original" id="pro-original"></div>
+        <div class="plan-price" id="pro-price">
+          ₦{{ pro.price_kobo|default:3500000|floatformat:0 | divisibleby:100 }}
+        </div>
+        <div class="plan-saving" id="pro-saving"></div>
+        <p class="plan-period" id="pro-period">per month</p>
         <ul class="plan-features">
           <li><span class="check">✓</span> 1 WhatsApp number</li>
           <li><span class="check">✓</span> Everything in Growth</li>
@@ -291,9 +399,7 @@
           <li><span class="check">✓</span> Dedicated support</li>
           <li><span class="check">✓</span> Custom onboarding</li>
           <li><span class="check" style="background:rgba(251,191,36,0.15);color:#f59e0b;">✦</span>
-            AI Smart Replies <span style="background:#f59e0b;color:#000;font-size:0.6rem;
-              font-weight:700;padding:1px 6px;border-radius:100px;margin-left:4px;">
-              Soon</span>
+            AI Smart Replies
           </li>
           <li><span class="check">✓</span> Monthly strategy call</li>
         </ul>
@@ -301,32 +407,137 @@
 
     </div>
 
+    <!-- Order Summary -->
+    <div class="order-summary">
+      <div class="summary-title">Order Summary</div>
+      <div class="summary-row">
+        <span id="summary-plan-label">Growth Plan × 1 month</span>
+        <span id="summary-base-price">₦18,000</span>
+      </div>
+      <div class="summary-row" id="summary-discount-row" style="display:none;">
+        <span id="summary-discount-label">Discount</span>
+        <span id="summary-discount-value" class="summary-saving"></span>
+      </div>
+      <div class="summary-row total">
+        <span>Total Due Today</span>
+        <span id="summary-total">₦18,000</span>
+      </div>
+      <div class="summary-row" id="summary-saving-row" style="display:none;">
+        <span></span>
+        <span id="summary-saving-text" class="summary-saving"></span>
+      </div>
+    </div>
+
     <button type="submit" class="btn-pay" id="payBtn">
-      🔒 Pay with Paystack →
+      🔒 Pay ₦18,000 with Paystack →
     </button>
 
     <p class="security-note">
-      🔒 Secured by Paystack · Pay with card, bank transfer, Opay, USSD
+      🔒 Secured by Paystack · Card, Bank Transfer, Opay, USSD
     </p>
   </form>
 </div>
 
 <script>
-function selectPlan(plan, card) {
-  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  document.getElementById('selectedPlan').value = plan;
+  // Plan prices in kobo from Django (divide by 100 for naira)
+  const PRICES = {
+    starter: {{ starter.price_kobo|default:800000 }},
+    growth:  {{ growth.price_kobo|default:1800000 }},
+    pro:     {{ pro.price_kobo|default:3500000 }},
+  };
 
-  const prices = { starter: '₦8,000', growth: '₦18,000', pro: '₦35,000' };
-  document.getElementById('payBtn').textContent =
-    `🔒 Pay ${prices[plan]} with Paystack →`;
-}
+  const DISCOUNTS = {
+    starter: { 1: 0, 3: {{ starter.discount_3_months|default:10 }}, 6: {{ starter.discount_6_months|default:15 }}, 12: {{ starter.discount_12_months|default:20 }} },
+    growth:  { 1: 0, 3: {{ growth.discount_3_months|default:10 }},  6: {{ growth.discount_6_months|default:15 }},  12: {{ growth.discount_12_months|default:20 }} },
+    pro:     { 1: 0, 3: {{ pro.discount_3_months|default:10 }},     6: {{ pro.discount_6_months|default:15 }},     12: {{ pro.discount_12_months|default:20 }} },
+  };
 
-document.getElementById('planForm').addEventListener('submit', function() {
-  const btn = document.getElementById('payBtn');
-  btn.textContent = '⏳ Redirecting to payment...';
-  btn.disabled = true;
-});
+  const PLAN_NAMES = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+
+  let currentPlan   = 'growth';
+  let currentMonths = 1;
+
+  function formatNaira(kobo) {
+    return '₦' + (kobo / 100).toLocaleString('en-NG', { minimumFractionDigits: 0 });
+  }
+
+  function updateUI() {
+    const monthlyKobo  = PRICES[currentPlan];
+    const discount     = DISCOUNTS[currentPlan][currentMonths] || 0;
+    const fullKobo     = monthlyKobo * currentMonths;
+    const totalKobo    = Math.round(fullKobo * (1 - discount / 100));
+    const savedKobo    = fullKobo - totalKobo;
+    const effectiveMonthly = Math.round(totalKobo / currentMonths);
+
+    // Update each plan card prices
+    ['starter', 'growth', 'pro'].forEach(plan => {
+      const mKobo     = PRICES[plan];
+      const disc      = DISCOUNTS[plan][currentMonths] || 0;
+      const fKobo     = mKobo * currentMonths;
+      const tKobo     = Math.round(fKobo * (1 - disc / 100));
+      const effM      = Math.round(tKobo / currentMonths);
+      const savedK    = fKobo - tKobo;
+
+      document.getElementById(`${plan}-price`).textContent = formatNaira(effM);
+
+      if (currentMonths > 1 && disc > 0) {
+        document.getElementById(`${plan}-original`).textContent = formatNaira(mKobo) + '/mo';
+        document.getElementById(`${plan}-saving`).textContent   = `Save ${formatNaira(savedK)} total`;
+        document.getElementById(`${plan}-period`).textContent   = `per month (billed ${formatNaira(tKobo)} total)`;
+      } else {
+        document.getElementById(`${plan}-original`).textContent = '';
+        document.getElementById(`${plan}-saving`).textContent   = '';
+        document.getElementById(`${plan}-period`).textContent   = 'per month';
+      }
+    });
+
+    // Update summary box
+    const planLabel = PLAN_NAMES[currentPlan];
+    document.getElementById('summary-plan-label').textContent =
+      `${planLabel} Plan × ${currentMonths} month${currentMonths > 1 ? 's' : ''}`;
+    document.getElementById('summary-base-price').textContent = formatNaira(fullKobo);
+
+    if (discount > 0) {
+      document.getElementById('summary-discount-row').style.display = 'flex';
+      document.getElementById('summary-discount-label').textContent = `${discount}% discount`;
+      document.getElementById('summary-discount-value').textContent = `−${formatNaira(savedKobo)}`;
+      document.getElementById('summary-saving-row').style.display   = 'flex';
+      document.getElementById('summary-saving-text').textContent    =
+        `🎉 You save ${formatNaira(savedKobo)} on this plan!`;
+    } else {
+      document.getElementById('summary-discount-row').style.display = 'none';
+      document.getElementById('summary-saving-row').style.display   = 'none';
+    }
+
+    document.getElementById('summary-total').textContent = formatNaira(totalKobo);
+    document.getElementById('payBtn').textContent =
+      `🔒 Pay ${formatNaira(totalKobo)} with Paystack →`;
+  }
+
+  function selectPlan(plan, card) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    currentPlan = plan;
+    document.getElementById('selectedPlan').value = plan;
+    updateUI();
+  }
+
+  function selectDuration(months, tab) {
+    document.querySelectorAll('.duration-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMonths = months;
+    document.getElementById('selectedMonths').value = months;
+    updateUI();
+  }
+
+  document.getElementById('planForm').addEventListener('submit', function() {
+    const btn = document.getElementById('payBtn');
+    btn.textContent = '⏳ Redirecting to payment...';
+    btn.disabled = true;
+  });
+
+  // Init on load
+  updateUI();
 </script>
 </body>
 </html>
