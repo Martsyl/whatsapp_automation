@@ -296,31 +296,31 @@
   <!-- INFO SIDEBAR -->
   <aside class="ct-info">
 
-    <a href="mailto:support@botmart.ng" class="ct-contact-item">
+    <a href="mailto:support@botmart.app" class="ct-contact-item">
       <div class="ct-ci-icon ci-green">📧</div>
       <div>
         <div class="ct-ci-label">Support</div>
-        <div class="ct-ci-value">support@botmart.ng</div>
+        <div class="ct-ci-value">support@botmart.app</div>
         <div class="ct-ci-sub">General enquiries</div>
       </div>
       <span class="ct-ci-arrow">→</span>
     </a>
 
-    <a href="mailto:billing@botmart.ng" class="ct-contact-item">
+    <a href="mailto:billing@botmart.app" class="ct-contact-item">
       <div class="ct-ci-icon ci-amber">💳</div>
       <div>
         <div class="ct-ci-label">Billing</div>
-        <div class="ct-ci-value">billing@botmart.ng</div>
+        <div class="ct-ci-value">billing@botmart.app</div>
         <div class="ct-ci-sub">Payments &amp; subscriptions</div>
       </div>
       <span class="ct-ci-arrow">→</span>
     </a>
 
-    <a href="mailto:legal@botmart.ng" class="ct-contact-item">
+    <a href="mailto:legal@botmart.app" class="ct-contact-item">
       <div class="ct-ci-icon ci-blue">⚖️</div>
       <div>
         <div class="ct-ci-label">Legal</div>
-        <div class="ct-ci-value">legal@botmart.ng</div>
+        <div class="ct-ci-value">legal@botmart.app</div>
         <div class="ct-ci-sub">Privacy &amp; compliance</div>
       </div>
       <span class="ct-ci-arrow">→</span>
@@ -394,7 +394,7 @@
       e.preventDefault();
       const subject = document.getElementById('subjectValue').value || 'General Enquiry';
       const body = `Name: ${fname} ${document.getElementById('lname').value}\nEmail: ${email}\nPhone: ${document.getElementById('phone').value}\nSubject: ${subject}\n\nMessage:\n${message}`;
-      window.location.href = `mailto:support@botmart.ng?subject=${encodeURIComponent('[BotMart] ' + subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = `mailto:support@botmart.app?subject=${encodeURIComponent('[BotMart] ' + subject)}&body=${encodeURIComponent(body)}`;
       setTimeout(() => {
         document.getElementById('contactForm').style.display = 'none';
         document.getElementById('successMsg').classList.add('show');

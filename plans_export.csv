@@ -1,0 +1,4 @@
+id,name,display_name,price_kobo,price_naira,description,is_active,created_at,updated_at,discount_12_months,discount_3_months,discount_6_months
+3,pro,Pro,3500000,35000,Everything in Growth + unlimited AI + dedicated support,t,2026-03-14 04:34:25.605719+01,2026-03-03 14:50:35.344918,20,10,15
+2,growth,Growth,2000000,20000,"Unlimited contacts, rules, products + broadcasts + AI replies",t,2026-03-14 04:34:25.605719+01,2026-03-03 14:50:35.352151,20,10,15
+1,starter,Starter,900000,9000,"1 WhatsApp number, 500 contacts, 10 rules, 10 products",t,2026-03-14 04:34:25.605719+01,2026-03-03 14:50:35.354468,20,10,15

@@ -1566,6 +1566,75 @@ def account_deleted(request):
     return render(request, 'core/account_deleted.html')
 
 
+def support(request):
+    """Contact / support form — sends message to admin via Resend."""
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name  = request.POST.get('last_name', '').strip()
+        email      = request.POST.get('email', '').strip()
+        phone      = request.POST.get('phone', '').strip()
+        subject    = request.POST.get('subject', 'General Enquiry').strip()
+        message    = request.POST.get('message', '').strip()
+
+        if not all([first_name, email, message]):
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'core/support.html')
+
+        admin_email = os.getenv('ADMIN_NOTIFY_EMAIL')
+        if admin_email:
+            try:
+                import requests as http_requests
+                api_key    = os.getenv('RESEND_API_KEY')
+                from_email = os.getenv('MAIL_FROM', 'noreply@botmart.app')
+                from_name  = os.getenv('MAIL_FROM_NAME', 'BotMart')
+
+                html = f"""
+                <h2 style="color:#065f46;">New Contact Form Submission</h2>
+                <table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;">
+                    <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb;">Name</td>
+                        <td style="padding:8px;border:1px solid #e5e7eb;">{first_name} {last_name}</td></tr>
+                    <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb;">Email</td>
+                        <td style="padding:8px;border:1px solid #e5e7eb;"><a href="mailto:{email}">{email}</a></td></tr>
+                    <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb;">Phone</td>
+                        <td style="padding:8px;border:1px solid #e5e7eb;">{phone or 'Not provided'}</td></tr>
+                    <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb;">Subject</td>
+                        <td style="padding:8px;border:1px solid #e5e7eb;">{subject}</td></tr>
+                    <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb;">Message</td>
+                        <td style="padding:8px;border:1px solid #e5e7eb;">{message.replace(chr(10), '<br>')}</td></tr>
+                </table>
+                <p style="color:#6b7280;font-size:12px;margin-top:20px;">
+                    Sent from BotMart contact form at botmart.app
+                </p>
+                """
+
+                if api_key:
+                    http_requests.post(
+                        "https://api.resend.com/emails",
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "from": f"{from_name} <{from_email}>",
+                            "to": [admin_email],
+                            "reply_to": email,
+                            "subject": f"[BotMart Support] {subject} — {first_name} {last_name}",
+                            "html": html,
+                        },
+                        timeout=15
+                    )
+            except Exception as e:
+                logger.error(f"[support] Email failed: {e}", exc_info=True)
+
+        messages.success(
+            request,
+            f"Thanks {first_name}! Your message has been sent. We\'ll reply within 24 hours."
+        )
+        return redirect('support')
+
+    return render(request, 'core/support.html')
+
+
 
 
 
