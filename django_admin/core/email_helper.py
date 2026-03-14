@@ -1,32 +1,41 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import os
+import requests as http_requests
 from dotenv import load_dotenv
 from datetime import date
 load_dotenv()
 
 
 # ─────────────────────────────────────────────
-# CORE SMTP SENDER
+# CORE RESEND SENDER
 # ─────────────────────────────────────────────
 
 def _smtp_send(to_email, subject, body_html):
-    if not os.getenv("MAIL_USERNAME") or not os.getenv("MAIL_PASSWORD"):
-        print("Email skipped — credentials not configured")
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        print("Email skipped — RESEND_API_KEY not configured")
         return False
     try:
-        msg            = MIMEMultipart('alternative')
-        msg['From']    = f"{os.getenv('MAIL_FROM_NAME', 'BotMart')} <{os.getenv('MAIL_FROM')}>"
-        msg['To']      = to_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body_html, 'html'))
-        server = smtplib.SMTP(os.getenv("MAIL_SERVER"), int(os.getenv("MAIL_PORT", 587)))
-        server.starttls()
-        server.login(os.getenv("MAIL_USERNAME"), os.getenv("MAIL_PASSWORD"))
-        server.sendmail(os.getenv("MAIL_FROM"), to_email, msg.as_string())
-        server.quit()
-        return True
+        from_name  = os.getenv("MAIL_FROM_NAME", "BotMart")
+        from_email = os.getenv("MAIL_FROM", "noreply@botmart.app")
+        response = http_requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": f"{from_name} <{from_email}>",
+                "to": [to_email],
+                "subject": subject,
+                "html": body_html,
+            },
+            timeout=15
+        )
+        if response.status_code in (200, 201):
+            return True
+        else:
+            print(f"Resend error: {response.status_code} - {response.text}")
+            return False
     except Exception as e:
         print(f"Email send failed: {e}")
         return False
@@ -773,24 +782,15 @@ def send_new_client_notification(client_email, business_name, plan, months, amou
 </html>
 """
 
+
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"🎉 New Client: {business_name} — {plan.title()} Plan ({duration})"
-        msg['From']    = f"BotMart <{os.getenv('EMAIL_HOST_USER')}>"
-        msg['To']      = admin_email
-        msg.attach(MIMEText(html, 'html'))
-
-        with smtplib.SMTP(os.getenv('EMAIL_HOST', 'smtp.gmail.com'),
-                          int(os.getenv('EMAIL_PORT', 587))) as server:
-            server.starttls()
-            server.login(os.getenv('EMAIL_HOST_USER'), os.getenv('EMAIL_HOST_PASSWORD'))
-            server.sendmail(os.getenv('EMAIL_HOST_USER'), admin_email, msg.as_string())
-
+        subject = f"🎉 New Client: {business_name} — {plan.title()} Plan ({duration})"
+        _smtp_send(admin_email, subject, html)
         print(f"[email] Admin notified of new client: {business_name}")
-
     except Exception as e:
         print(f"[email] Admin notification failed: {e}")
         # Never raise — don't let email failure break the payment flow
+
 
 
 def send_renewal_notification(client_email, business_name, plan, months, amount_naira):
@@ -944,19 +944,8 @@ def send_renewal_notification(client_email, business_name, plan, months, amount_
 """
 
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"🔄 Renewal: {business_name} — {plan.title()} Plan ₦{amount_naira:,}"
-        msg['From']    = f"BotMart <{os.getenv('EMAIL_HOST_USER')}>"
-        msg['To']      = admin_email
-        msg.attach(MIMEText(html, 'html'))
-
-        with smtplib.SMTP(os.getenv('EMAIL_HOST', 'smtp.gmail.com'),
-                          int(os.getenv('EMAIL_PORT', 587))) as server:
-            server.starttls()
-            server.login(os.getenv('EMAIL_HOST_USER'), os.getenv('EMAIL_HOST_PASSWORD'))
-            server.sendmail(os.getenv('EMAIL_HOST_USER'), admin_email, msg.as_string())
-
+        subject = f"🔄 Renewal: {business_name} — {plan.title()} Plan ₦{amount_naira:,}"
+        _smtp_send(admin_email, subject, html)
         print(f"[email] Admin notified of renewal: {business_name}")
-
     except Exception as e:
         print(f"[email] Renewal notification failed: {e}")

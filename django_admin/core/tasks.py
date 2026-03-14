@@ -1,11 +1,9 @@
 # core/tasks.py
 
 import time
-import smtplib
 import os
 import logging
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests as http_requests
 from celery import shared_task
 from django.utils import timezone
 
@@ -384,22 +382,31 @@ def wrap_with_template(subject, body, business_name, plan):
 # ─────────────────────────────────────────────
 
 def send_single_email(to_email, subject, body):
-    """Send one email via Gmail SMTP. Returns (success, error_msg)"""
+    """Send one email via Resend API. Returns (success, error_msg)"""
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        return False, "RESEND_API_KEY not configured"
     try:
-        msg            = MIMEMultipart('alternative')
-        msg['From']    = f"{os.getenv('MAIL_FROM_NAME', 'BotMart')} <{os.getenv('MAIL_FROM')}>"
-        msg['To']      = to_email
-        msg['Subject'] = subject
-
-        msg.attach(MIMEText(body, 'html'))
-
-        server = smtplib.SMTP(os.getenv("MAIL_SERVER"), int(os.getenv("MAIL_PORT", 587)))
-        server.starttls()
-        server.login(os.getenv("MAIL_USERNAME"), os.getenv("MAIL_PASSWORD"))
-        server.sendmail(os.getenv("MAIL_FROM"), to_email, msg.as_string())
-        server.quit()
-        return True, None
-
+        from_name  = os.getenv("MAIL_FROM_NAME", "BotMart")
+        from_email = os.getenv("MAIL_FROM", "noreply@botmart.app")
+        response = http_requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": f"{from_name} <{from_email}>",
+                "to": [to_email],
+                "subject": subject,
+                "html": body,
+            },
+            timeout=15
+        )
+        if response.status_code in (200, 201):
+            return True, None
+        else:
+            return False, f"Resend error {response.status_code}: {response.text}"
     except Exception as e:
         return False, str(e)
 
