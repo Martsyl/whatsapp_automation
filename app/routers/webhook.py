@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, Query, BackgroundTasks
+from fastapi.responses import PlainTextResponse
 from app.database import SessionLocal
 from app import models
 from app.email import send_email_notification
@@ -625,7 +626,7 @@ def verify_webhook(
     hub_challenge: str    = Query(None, alias="hub.challenge")
 ):
     if hub_mode == "subscribe" and hub_verify_token == VERIFY_TOKEN:
-        return int(hub_challenge)
+        return PlainTextResponse(content=hub_challenge)
     return {"error": "Verification failed"}
 
 

@@ -29,7 +29,7 @@ DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
     'localhost', '127.0.0.1',
-    '.ngrok-free.app', '.ngrok-free.dev', '.ngrok.io',
+    '.ngrok-free.app', '.ngrok-free.dev', '.ngrok.io', 'botmart.app', 'www.botmart.app', '138.68.139.185'
 ])
 
 
